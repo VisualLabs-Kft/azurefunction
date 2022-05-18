@@ -74,16 +74,13 @@ def main():
             }
     }
     print("Listing Contracts with limit handle level")
-    listedContracts = ro.queryRecords(filt, 'vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+    listedContracts = ro.queryRecords(filt, 'vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
     if listedContracts != -1:
         if listedCustomersForContracts != -1:
             for contract in listedContracts:
-                if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
-                    listedContracts.remove(contract)
-                else:
-                    for customer in listedCustomersForContracts:
-                        if customer['accountid'] == contract['_vl_ugyfel_value']:
-                            listedContracts.remove(contract)
+                for customer in listedCustomersForContracts:
+                    if customer['accountid'] == contract['_vl_ugyfel_value']:
+                        listedContracts.remove(contract)
         limit_on_contract(listedContracts,config)
 
 
@@ -143,21 +140,21 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
         for line in bcLine:
             ok=False
             if line['Shortcut_Dimension_2_Code']==pos['vl_pos_id']:
-                #if contractLine['vl_limitertek_alapja'] == 100000002:
-                #    ok=True
-                #else:
-                if contractProductsHuf:
-                    for product in contractProductsHuf:
-                        if line['No'] == product['productnumber']:
-                            ok=True
-                elif contractProductsKg:
-                    for product in contractProductsKg:
-                        if line['No'] == product['productnumber']:
-                            ok=True
-                elif contractProductsUnit:
-                    for product in contractProductsUnit:
-                        if line['No'] == product['productnumber']:
-                            ok=True
+                if contractLine['vl_limitertek_alapja'] == 100000002:
+                    ok=True
+                else:
+                    if contractProductsHuf:
+                        for product in contractProductsHuf:
+                            if line['No'] == product['productnumber']:
+                                ok=True
+                    elif contractProductsKg:
+                        for product in contractProductsKg:
+                            if line['No'] == product['productnumber']:
+                                ok=True
+                    elif contractProductsUnit:
+                        for product in contractProductsUnit:
+                            if line['No'] == product['productnumber']:
+                                ok=True
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
@@ -211,7 +208,6 @@ def limit_on_customer(listedCustomers,config):
     pass
 
 def limit_on_contract(listedContracts,config):
-    print(listedContracts)
     print("-------------------CONNECT TO BUSINESS CENTRAL---------------------")
     auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
     client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
@@ -228,18 +224,15 @@ def limit_on_contract(listedContracts,config):
         print('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
         #teljesítési periodus megadása
         #nem jó így, most mindig az első hónap hossza lesz, mi kéne helyette?
-        last_day_of_prev_month = datetime.datetime.today().replace(day=1)-relativedelta(days=1)
         if contract['vl_szamlazasi_periodus_szerzodes'] == 100000000:
-            periodDays=(last_day_of_prev_month+relativedelta(months=+1)-last_day_of_prev_month).days
+            periodDays=(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')+relativedelta(months=+1)-datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')).days
         elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000001:
-            periodDays=(last_day_of_prev_month+relativedelta(months=+3)-last_day_of_prev_month).days
+            periodDays=(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')+relativedelta(months=+3)-datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')).days
         elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000002:
-            periodDays=(last_day_of_prev_month+relativedelta(months=+6)-last_day_of_prev_month).days
+            periodDays=(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')+relativedelta(months=+6)-datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')).days
         elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000003:
-            periodDays=(last_day_of_prev_month+relativedelta(months=+12)-last_day_of_prev_month).days
+            periodDays=(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')+relativedelta(months=+12)-datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')).days
         else:
-            print('Nincs megadva periódus a szerződéhez')
-            continue
             periodDays=(contract['vl_szerzodes_lejarata']-contract['vl_szamlazasi_periodus_kezdete_szerzodes']).days
         print('Periódus hossza: '+str(periodDays))
         #Szerződés sorainak listázása
@@ -265,48 +258,21 @@ def limit_on_contract(listedContracts,config):
             #Szerződés termék sorainak listázása
             filt = {
                 'filter1': {
-                    'field': 'vl_termek_hierarchia',
-                    'operator': 'eq',
-                    'value': '100000000'
-                }
-            }
-            allProducts=ro.queryRecords(filt, '_vl_folerendelt_termek_csoport_value,productnumber', 'products', config)
-            filt = {
-                'filter1': {
                     'field': '_vl_szerzodesek_limit_termek_value',
                     'operator': 'eq',
                     'value': contract['vl_szerzodesekid']
                 }
             }
-            contractProducts = ro.queryRecords(filt, '_vl_szerzodesek_limit_termek_value,vl_limitvizsgalatialap,_vl_kapcsolodo_termek_value,_vl_vallalt_termek_csoport_value', 'vl_limittermeksorais', config)
+            contractProducts = ro.queryRecords(filt, '_vl_szerzodesek_limit_termek_value,vl_limitvizsgalatialap,_vl_kapcsolodo_termek_value', 'vl_limittermeksorais', config)
             contractProductsKg=[]
             contractProductsHuf=[]
             contractProductsUnit=[]
-            if contractProducts == -1:
-                print('Nincs megadva a szerződéshez termék')
-                continue
             for product in contractProducts:
                 if product['vl_limitvizsgalatialap']==100000000:
-                    if product['_vl_kapcsolodo_termek_value'] is None or product['_vl_kapcsolodo_termek_value']=="":
-                        for prod in allProducts:
-                            if product['_vl_vallalt_termek_csoport_value']==prod['_vl_folerendelt_termek_csoport_value']:
-                                contractProductsKg.append(prod)
-                    else:
-                        contractProductsKg.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
+                    contractProductsKg.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
                 elif product['vl_limitvizsgalatialap']==100000001:
-                    if product['_vl_kapcsolodo_termek_value'] is None or product['_vl_kapcsolodo_termek_value']=="":
-                        for prod in allProducts:
-                            if product['_vl_vallalt_termek_csoport_value']==prod['_vl_folerendelt_termek_csoport_value']:
-                                contractProductsHuf.append(prod)                    
-                    else:
-                        contractProductsHuf.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
-                else: 
-                    if product['_vl_kapcsolodo_termek_value'] is None or product['_vl_kapcsolodo_termek_value']=="":
-                        for prod in allProducts:
-                            if product['_vl_vallalt_termek_csoport_value']==prod['_vl_folerendelt_termek_csoport_value']:
-                                contractProductsUnit.append(prod)                    
-                    else:
-                        contractProductsUnit.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
+                    contractProductsHuf.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
+                else: contractProductsUnit.append(ro.getRecord(product['_vl_kapcsolodo_termek_value'],'products',config))
 
             
             #Horeca vagy Vending szerződés
