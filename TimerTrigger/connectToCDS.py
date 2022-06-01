@@ -11,7 +11,7 @@ import requests
 
 def getConfig():
     config = {
-    "authority": "https://login.microsoftonline.com/0db1d2dc-8273-4528-b4ec-85a902fad7af", # login + Azure-ben AAD -> App Registrations -> kiválasztani a megfelelőt -> Directory (tenant) ID
+    "authority": "https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46", # login + Azure-ben AAD -> App Registrations -> kiválasztani a megfelelőt -> Directory (tenant) ID
     "client_id": "7fcfca9b-3905-4cf5-b0b2-5c3c74191f45", # Dynamics -> Settings -> Biztonság -> Alkalmazás felhasználók -> Alkalmazást azonosító URI
     "scope": ["https://dallmayrdev.api.crm4.dynamics.com/.default"],
     "secret": "3QT7Q~FN.KRaRFKydxRNwpTZB.rm1j1nQepcz", # Azure -> AAD -> App registrations -> kiválasztani a megfelelőt -> Certificates & Secrets (csak egyszer lehet látni az újonnan létrehozott secretet)

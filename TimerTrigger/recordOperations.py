@@ -59,12 +59,12 @@ def updateRecord(changeObject, guid, entity_name, config):
 def queryRecords(filt, fields, entity_name, config):
 
     filt = ' '.join([f for fi in filt.keys() for f in filt[fi].values()])
-    print("Query filter: {}".format(filt))
+    #print("Query filter: {}".format(filt))
 
     crmres = requests.get(config['endpoint'] + entity_name + '?$select=' + fields + '&$filter=' + filt, headers=config['requestheader'])
 
     if len(json.loads(crmres.content)['value']) > 0:
-        print("Successful query! The response: {}".format(json.loads(crmres.content)['value']))
+        #print("Successful query! The response: {}".format(json.loads(crmres.content)['value']))
         return json.loads(crmres.content)['value']
     else:
         print("There is no record for the given filter!")

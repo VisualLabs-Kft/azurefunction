@@ -1,11 +1,17 @@
 {
   "scriptFile": "__init__.py",
+  "disabled": false,    
   "bindings": [
-    {
-      "name": "mytimer",
-      "type": "timerTrigger",
-      "direction": "in",
-      "schedule": "0 30 2 * * *"
-    }
+      {
+          "authLevel": "function",
+          "type": "httpTrigger",
+          "direction": "in",
+          "name": "req"
+      },
+      {
+          "type": "http",
+          "direction": "out",
+          "name": "$return"
+      }
   ]
 }
