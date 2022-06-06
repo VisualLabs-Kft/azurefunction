@@ -8,16 +8,35 @@ import recordOperations as ro
 import requests
 import http.client
 
+def get_token(auth_url, client_id, scope, client_secret, grant_type = 'client_credentials'):
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    url =auth_url
+    data = { "client_id": client_id,
+            "scope": scope,
+            "client_secret": client_secret,
+            "grant_type": grant_type
+        }
+    r = requests.post(url=url, data=data, headers=headers)
+    return r.json(), r.status_code
 
 auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
 client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
 scope = 'https://api.businesscentral.dynamics.com/.default'
 client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
-
+print("-------------------CONNECT TO BUSINESS CENTRAL---------------------")
+auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
+client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
+scope = 'https://api.businesscentral.dynamics.com/.default'
+client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
+token = get_token(auth_url, client_id, scope, client_secret)
+access_token = token[0]['access_token']
+header_token = {"Authorization": "Bearer {}".format(access_token)}
+bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
+bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
 
 
 def main():
-    commandName='monthly'
+    commandName='daily'
     # Connect to Dataverse
     print("\n ---------------------------------- CONNECT TO DATAVERSE ---------------------------------- ")
     print("Creating config file!")
@@ -39,9 +58,9 @@ def main():
             }
     }
     print("Listing CustomerGroups with limit handle level")
-    listedCustomerGroups = ro.queryRecords(filt, 'vl_limit_megadasi_helye_szintje', 'vl_vevocsoports', config)
+    listedCustomerGroups = ro.queryRecords(filt, 'vl_limit_megadasi_helye_szintje,vl_name', 'vl_vevocsoports', config)
     if listedCustomerGroups != -1:
-        limit_on_customergroup(listedCustomerGroups,config)
+        limit_on_customergroup(listedCustomerGroups,commandName,config)
     
     filt = {
             'filter1': {
@@ -51,12 +70,12 @@ def main():
             }
     }
     print("Listing Customers with limit handle level")
-    listedCustomers = ro.queryRecords(filt, 'vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+    listedCustomers = ro.queryRecords(filt, 'name,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
     #Szerződések szűréséhez, ha kikerülne a partner a listából mert van fölötte lévő szint
     listedCustomersForContracts = listedCustomers[:]
     if listedCustomers != -1:
         if listedCustomerGroups != -1:
-            for customer in listedCustomers:
+            for customer in list(listedCustomers):
                 if customer['_parentaccountid_value'] is None:
                     pass
                 else:
@@ -67,7 +86,7 @@ def main():
                 for group in listedCustomerGroups:
                     if customer['_vl_vevocsoport_partner_value'] == group['vl_vevocsoportid']:
                         listedCustomers.remove(customer)
-        limit_on_customer(listedCustomers,commandName,config)
+        limit_on_customer(listedCustomers,commandName,100000001,[0,0,0,0,0,0,0],config)
     
     filt = {
             'filter1': {
@@ -80,14 +99,14 @@ def main():
     listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
     if listedContracts != -1:
         if listedCustomersForContracts != -1:
-            for contract in listedContracts:
+            for contract in list(listedContracts):
                 if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
                     listedContracts.remove(contract)
                 else:
                     for customer in listedCustomersForContracts:
                         if customer['accountid'] == contract['_vl_ugyfel_value']:
                             listedContracts.remove(contract)
-        limit_on_contract(listedContracts,commandName,config)
+        limit_on_contract(listedContracts,commandName,100000000,[0,0,0,0,0,0,0],config)
 
 
 def calculate_correction(periodStart,periodEnd,periodDays,linePeriodStart,linePeriodEnd):
@@ -134,10 +153,13 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
             if contract['vl_szerzodes_lejarata'] is None:
                 szamlazasVege=""
             else:
-                szamlazasVege = datetime.datetime.strptime(contract['vl_szerzodes_lejarata'],'%Y-%m-%d')
+                szamlazasVege = datetime.datetime.strptime(str(contract['vl_szerzodes_lejarata']).split('T')[0],'%Y-%m-%d')
         else:
             szamlazasVege = datetime.datetime.strptime(contractLine['vl_szamlazas_vege'].split('T')[0],'%Y-%m-%d')
-        correction=calculate_correction(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d'),contract['vl_szerzodes_lejarata'],periodDays,datetime.datetime.strptime(contractLine['vl_szamlazas_kezdete'].split('T')[0],'%Y-%m-%d'),szamlazasVege)
+        if contractLine['vl_szamlazas_kezdete'] is None:
+            billingStart=contract['vl_szamlazasi_periodus_kezdete_szerzodes']
+        else: billingStart=contractLine['vl_szamlazas_kezdete']
+        correction=calculate_correction(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d'),datetime.datetime.strptime(contract['vl_szerzodes_lejarata'].split('T')[0],'%Y-%m-%d'),periodDays,datetime.datetime.strptime(billingStart.split('T')[0],'%Y-%m-%d'),szamlazasVege)
         print("Korrekció: "+str(correction))
         postedSalesInvoiceLines=[]
         postedSalesInvoiceHeads=[]
@@ -195,36 +217,111 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
 
             
 
-def get_token(auth_url, client_id, scope, client_secret, grant_type = 'client_credentials'):
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    url =auth_url
-    data = { "client_id": client_id,
-            "scope": scope,
-            "client_secret": client_secret,
-            "grant_type": grant_type
+
+def limit_on_customergroup(listedCustomerGroups,commandName,config):
+    for group in listedCustomerGroups:
+        #[eladottKg,eladottOsszeg,eladottMennyiseg,limitKg,limitOsszeg,limitMennyiseg,vegosszeg]
+        dailyDataVcs=[0,0,0,0,0,0,0]
+        filt = {
+            'filter1': {
+                'field': '_vl_vevocsoport_partner_value',
+                'operator': 'eq',
+                'value': group['vl_vevocsoportid']
+            }
         }
-    r = requests.post(url=url, data=data, headers=headers)
-    return r.json(), r.status_code
+        listedCustomers = ro.queryRecords(filt, 'name,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+        if listedCustomers != -1:
+                print("-------------------------LIMIT ON CUSTOMERGROUP--------------------------")
+                for customer in list(listedCustomers):
+                    if customer['_parentaccountid_value'] is None:
+                        pass
+                    else:
+                        parentCustomer=ro.getRecord(customer['_parentaccountid_value'],'accounts',config)
+                        if parentCustomer['_vl_vevocsoport_partner_value'] ==group['vl_vevocsoportid']:
+                            listedCustomers.remove(customer)
+                limit_on_customer(listedCustomers,commandName,100000002,dailyDataVcs,config)
+                if commandName=="daily" and not all(v == 0 for v in dailyDataVcs):
+                    print("Vevőcsoport neve: "+group['vl_name'])
+                    print("Eladott Kg: "+str(dailyDataVcs[0]))
+                    print("Eladott Összeg: "+str(dailyDataVcs[1]))
+                    print("Eladott Mennyiség: "+str(dailyDataVcs[2]))
+                    print("Limit Kg: "+str(dailyDataVcs[3]))
+                    print("Limit Összeg: "+str(dailyDataVcs[4]))
+                    print("Limit Mennyiség: "+str(dailyDataVcs[5]))
+                    print("Számlázandó összeg: "+str(dailyDataVcs[6]))
+                    data = {
+                        "vl_eladott_kg_vcs":dailyDataVcs[0],
+                        "vl_eladott_osszeg_vcs":dailyDataVcs[1],
+                        "vl_eladott_mennyiseg_vcs":dailyDataVcs[2],
+                        "vl_limit_kg_vcs":dailyDataVcs[3],
+                        "vl_limit_osszeg_vcs":dailyDataVcs[4],
+                        "vl_limit_mennyiseg_vcs":dailyDataVcs[5],
+                        "vl_vegosszeg_huf_vcs":str(dailyDataVcs[6]),
+                        "vl_hatralevo_kg_vcs":dailyDataVcs[3]-dailyDataVcs[0],
+                        "vl_hatralevo_osszeg_vcs":dailyDataVcs[4]-dailyDataVcs[1],
+                        "vl_hatralevo_mennyiseg_vcs":dailyDataVcs[5]-dailyDataVcs[6]
+                    }
+                    ro.updateRecord(data,group['vl_vevocsoportid'],'vl_vevocsoports',config)
 
-def limit_on_customergroup(listedCustomerGroups,config):
-    pass
+def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config):
+    for customer in listedCustomers:
+        #[eladottKg,eladottOsszeg,eladottMennyiseg,limitKg,limitOsszeg,limitMennyiseg,vegosszeg]
+        dailyData=[0,0,0,0,0,0,0]
+        filt = {
+            'filter1': {
+                'field': '_vl_ugyfel_value',
+                'operator': 'eq',
+                'value': customer['accountid']
+            }
+        }
+        listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+        if listedContracts != -1:
+                print("-------------------------LIMIT ON CUSTOMER--------------------------")
+            #for contract in list(listedContracts):
+                #if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
+                 #   listedContracts.remove(contract)
+            #if listedContracts != -1:
+                limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config)
+                dailyDataVcs[0]+=dailyData[0]
+                dailyDataVcs[1]+=dailyData[1]
+                dailyDataVcs[2]+=dailyData[2]
+                dailyDataVcs[3]+=dailyData[3]
+                dailyDataVcs[4]+=dailyData[4]
+                dailyDataVcs[5]+=dailyData[5]
+                dailyDataVcs[6]+=dailyData[6]
+                if commandName=="daily" and limitLevel==100000001 and not all(v == 0 for v in dailyData):
+                    print("Partner neve: "+customer['name'])
+                    print("Eladott Kg: "+str(dailyData[0]))
+                    print("Eladott Összeg: "+str(dailyData[1]))
+                    print("Eladott Mennyiség: "+str(dailyData[2]))
+                    print("Limit Kg: "+str(dailyData[3]))
+                    print("Limit Összeg: "+str(dailyData[4]))
+                    print("Limit Mennyiség: "+str(dailyData[5]))
+                    print("Számlázandó összeg: "+str(dailyData[6]))
+                    data = {
+                        "vl_eladott_kg_partner":dailyData[0],
+                        "vl_eladott_osszeg_partner":dailyData[1],
+                        "vl_eladott_mennyiseg_partner":dailyData[2],
+                        "vl_limit_kg_partner":dailyData[3],
+                        "vl_limit_osszeg_partner":dailyData[4],
+                        "vl_limit_mennyiseg_partner":dailyData[5],
+                        "vl_vegosszeg_huf":str(dailyData[6]),
+                        "vl_hatralevo_kg_partner":dailyData[3]-dailyData[0],
+                        "vl_hatralevo_osszeg_partner":dailyData[4]-dailyData[1],
+                        "vl_hatralevo_mennyiseg_partner":dailyData[5]-dailyData[6]
+                    }
+                    ro.updateRecord(data,customer['accountid'],'accounts',config)
+        else: print("Nincsenek szerződések a " + customer['name']+" nevű ügyfélhez")
 
-def limit_on_customer(listedCustomers,commandName,config):
-    pass
-
-def limit_on_contract(listedContracts,commandName,config):
-    print("-------------------CONNECT TO BUSINESS CENTRAL---------------------")
-    auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
-    client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
-    scope = 'https://api.businesscentral.dynamics.com/.default'
-    client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
-    token = get_token(auth_url, client_id, scope, client_secret)
-    access_token = token[0]['access_token']
-    header_token = {"Authorization": "Bearer {}".format(access_token)}
-    bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
-    bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
-    print("DONE")
+def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
     print("-------------------------LIMIT ON CONTRACT--------------------------")
+    soldKgPartner=0
+    soldHufPartner=0
+    soldUnitPartner=0
+    limitKgPartner=0
+    limitHufPartner=0
+    limitUnitPartner=0
+    billPartner=0
     for contract in listedContracts:
         print('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
         #teljesítési periodus megadása
@@ -340,7 +437,7 @@ def limit_on_contract(listedContracts,commandName,config):
             
             #Horeca vagy Vending szerződés
             posDictionary={}
-            if contract['vl_szerzodes_kategoria'] == 100000000 or contract['vl_szerzodes_kategoria'] == 1000000001:
+            if contract['vl_szerzodes_kategoria'] == 100000000 or contract['vl_szerzodes_kategoria'] == 100000001:
                 for contractLine in listedContractLines:
                     # Számlázó Dallmayr
                     if contractLine['vl_szamlazo'] == 100000001:
@@ -376,11 +473,17 @@ def limit_on_contract(listedContracts,commandName,config):
             halfLimitUnit=limitUnit*(halfLimitUnit/100)'''
         if listedContractLines != -1:                    
             print('Eladott kg:'+str(soldKg))
+            soldKgPartner+=soldKg
             print('Eladott összeg: ' + str(soldHuf))
+            soldHufPartner+=soldHuf
             print('Eladott mennyiség: '+str(soldUnit))
+            soldUnitPartner+=soldUnit
             print('Limit kg: '+str(limitKg))
+            limitKgPartner+=limitKg
             print('Limit összeg: '+str(limitHuf))
+            limitHufPartner+=limitHuf
             print('Limit mennyiség: '+str(limitUnit))
+            limitUnitPartner+=limitUnit
             #print('Köztes limit kg: '+str(halfLimitKg))
             #print('Köztes limit összeg: '+str(halfLimitHuf))
             #print('Köztes limit mennyiség: '+str(halfLimitUnit))
@@ -397,7 +500,7 @@ def limit_on_contract(listedContracts,commandName,config):
                 "vl_limit_mennyiseg":limitUnit,
                 "vl_limit_osszeg":limitHuf,
                 "vl_periodus":periodDays,
-                "vl_limit_szint":100000000,
+                "vl_limit_szint":limitLevel,
                 "vl_name":contract['vl_szerzodesszam'],
                 #ideiglenes id mező
                 "vl_korrekcio":id
@@ -409,7 +512,7 @@ def limit_on_contract(listedContracts,commandName,config):
                     'filter1': {
                         'field': 'vl_limit_szint',
                         'operator': 'eq',
-                        'value': "100000000"
+                        'value': str(limitLevel)
                     }
                 }
                 invoices=ro.queryRecords(filt,'vl_korrekcio,vl_name','vl_szolgaltatasszamlazases',config)
@@ -419,6 +522,7 @@ def limit_on_contract(listedContracts,commandName,config):
             for i in range(billRowCount+1):
                 if soldKg >= limitKg and soldUnit >= limitUnit and soldHuf >= limitHuf:
                     for contractLine in listedContractLines:
+                        print(contractLine)
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
                             data = {
                                 "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
@@ -430,10 +534,12 @@ def limit_on_contract(listedContracts,commandName,config):
                                 "vl_berl_uzem_dij_kedv":0,
                                 "vl_berl_uzem_dij_kedv_eredeti":0
                             }
-                            if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                print("Nem sikerült a létrehozás!")
+                            if commandName=="monthly":
+                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                    print("Nem sikerült a létrehozás!")
                             print('A következő sor fix díjas:')
                             print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
+                            billPartner+=int(contractLine['vl_fix_berleti_dij'])
                         else:
                             data = {
                                 "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
@@ -446,8 +552,9 @@ def limit_on_contract(listedContracts,commandName,config):
                                 "vl_berl_uzem_dij_kedv":100,
                                 "vl_berl_uzem_dij_kedv_eredeti":100
                             }
-                            if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                print("Nem sikerült a létrehozás!")
+                            if commandName=="monthly":
+                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                    print("Nem sikerült a létrehozás!")
                             print('A következő sor elérte a limitet:')
                             print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
                 else:
@@ -463,10 +570,12 @@ def limit_on_contract(listedContracts,commandName,config):
                                 "vl_berl_uzem_dij_kedv":0,
                                 "vl_berl_uzem_dij_kedv_eredeti":0
                             }
-                            if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                print("Nem sikerült a létrehozás!")
+                            if commandName=="monthly":
+                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                    print("Nem sikerült a létrehozás!")
                             print('A következő sor fix díjas:')
                             print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
+                            billPartner+=int(contractLine['vl_fix_berleti_dij'])
                         elif contractLine['vl_limit_koztes_ertek']:
                             if soldKg >= float(contractLine['vl_limit_erteke'])*limitKg and soldUnit >= float(contractLine['vl_limit_erteke'])*limitUnit and soldHuf >= float(contractLine['vl_limit_erteke'])*limitHuf:
                                 data = {
@@ -480,10 +589,12 @@ def limit_on_contract(listedContracts,commandName,config):
                                     "vl_berl_uzem_dij_kedv":int(100*float(contractLine['vl_limit_erteke'])),
                                     "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke']))
                                 }
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    print("Nem sikerült a létrehozás!")
+                                if commandName=="monthly":
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                        print("Nem sikerült a létrehozás!")
                                 print('A következő sor elérte a köztes limitet:')
                                 print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(int(contractLine['vl_koztes_limit_berleti_dija_huf']))+"Ft")
+                                billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                             else:
                                 data = {
                                     "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
@@ -496,10 +607,12 @@ def limit_on_contract(listedContracts,commandName,config):
                                     "vl_berl_uzem_dij_kedv":0,
                                     "vl_berl_uzem_dij_kedv_eredeti":0
                                 }
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    print("Nem sikerült a létrehozás!")
+                                if commandName=="monthly":
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                        print("Nem sikerült a létrehozás!")
                                 print('A következő sor nem érte el egyik limitet sem:')
                                 print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
+                                billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
                         else:
                             data = {
                                 "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
@@ -512,10 +625,12 @@ def limit_on_contract(listedContracts,commandName,config):
                                 "vl_berl_uzem_dij_kedv":0,
                                 "vl_berl_uzem_dij_kedv_eredeti":0
                             }
-                            if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                print("Nem sikerült a létrehozás!")
+                            if commandName=="monthly":
+                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
+                                    print("Nem sikerült a létrehozás!")
                             print('A következő sor nem érte el egyik limitet sem:')
                             print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
+                            billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
             ''' elif soldKg >= halfLimitKg and soldUnit >= halfLimitUnit and soldHuf >= halfLimitHuf:
                 for contractLine in listedContractLines:
                     if contractLine['vl_limittel_erintett_szerzodessor'] is False:
@@ -575,5 +690,34 @@ def limit_on_contract(listedContracts,commandName,config):
                         print('A következő sor nem érte el egyik limitet sem:')
                         print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
             '''
+        if commandName=="daily" and limitLevel==100000000:
+            print(contract['vl_szerzodesszam'])
+            print("Eladott Kg: "+str(dailyData[0]))
+            print("Eladott Összeg: "+str(dailyData[1]))
+            print("Eladott Mennyiség: "+str(dailyData[2]))
+            print("Limit Kg: "+str(dailyData[3]))
+            print("Limit Összeg: "+str(dailyData[4]))
+            print("Limit Mennyiség: "+str(dailyData[5]))
+            print("Számlázandó összeg: "+str(dailyData[6]))
+            data = {
+                "vl_eladott_kg_szerz":dailyData[0],
+                "vl_eladott_osszeg_szerz":dailyData[1],
+                "vl_eladott_mennyiseg_szerz":dailyData[2],
+                "vl_limit_kg_szerz":dailyData[3],
+                "vl_limit_osszeg_szerz":dailyData[4],
+                "vl_limit_mennyiseg_szerz":dailyData[5],
+                "vl_vegosszeg_huf":str(dailyData[6]),
+                "vl_hatralevo_kg_szerz":dailyData[3]-dailyData[0],
+                "vl_hatralevo_osszeg_szerz":dailyData[4]-dailyData[1],
+                "vl_hatralevo_mennyiseg_szerz":dailyData[5]-dailyData[6]
+            }
+            ro.updateRecord(data,contract['vl_szerzodesekid'],'vl_szerzodeseks',config)
+    dailyData[0]=soldKgPartner
+    dailyData[1]=soldHufPartner
+    dailyData[2]=soldUnitPartner
+    dailyData[3]=limitKgPartner
+    dailyData[4]=limitHufPartner
+    dailyData[5]=limitUnitPartner
+    dailyData[6]=billPartner
 if __name__ == "__main__":
     main()
