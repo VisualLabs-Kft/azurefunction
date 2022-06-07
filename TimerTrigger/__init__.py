@@ -697,6 +697,13 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
                         logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
             '''
         if commandName=="daily" and limitLevel==100000000:
+            dailyData[0]=soldKgPartner
+            dailyData[1]=soldHufPartner
+            dailyData[2]=soldUnitPartner
+            dailyData[3]=limitKgPartner
+            dailyData[4]=limitHufPartner
+            dailyData[5]=limitUnitPartner
+            dailyData[6]=billPartner
             logging.info(contract['vl_szerzodesszam'])
             logging.info("Eladott Kg: "+str(dailyData[0]))
             logging.info("Eladott Összeg: "+str(dailyData[1]))
@@ -706,7 +713,7 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
             logging.info("Limit Mennyiség: "+str(dailyData[5]))
             logging.info("Számlázandó összeg: "+str(dailyData[6]))
             data = {
-                "vl_eladott_kg_szerz":dailyData[0],
+                "vl_eladott_kgs_szerz":dailyData[0],
                 "vl_eladott_osszeg_szerz":dailyData[1],
                 "vl_eladott_mennyiseg_szerz":dailyData[2],
                 "vl_limit_kg_szerz":dailyData[3],
