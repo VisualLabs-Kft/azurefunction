@@ -33,6 +33,7 @@ def updateRecord(changeObject, guid, entity_name, config):
         print(json.loads(crmres.content))
     else:
         print("The record was updated successfully!")
+        print(crmres.content)
         return crmres.status_code
 
 
@@ -75,5 +76,5 @@ def queryRecords(filt, fields, entity_name, config):
 def createRecord(data, entity_name, config):
 
     crmres = requests.post(url = config['endpoint'] + entity_name, data = json.dumps(data), headers = config['requestheader'])
-
+    print(crmres.status_code)
     return crmres.status_code

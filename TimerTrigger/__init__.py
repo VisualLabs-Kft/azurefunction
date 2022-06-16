@@ -1,5 +1,6 @@
 import datetime
 from math import prod
+import os
 from dateutil.relativedelta import relativedelta
 import logging
 import json
@@ -38,6 +39,8 @@ bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
+    my_app_setting_value = os.environ["Test"]
+    logging.info(f'My app setting value:{my_app_setting_value}')
     logging.info('Python HTTP trigger function processed a request.')
     req_body = req.get_json()
     commandName = req_body.get('name')
