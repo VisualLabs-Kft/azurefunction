@@ -1,6 +1,7 @@
 import datetime
 from math import prod
 from dateutil.relativedelta import relativedelta
+from dateutil import tz
 import logging
 import json
 import connectToCDS as ctc
@@ -337,53 +338,128 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
     runningFee=0
     for contract in listedContracts:
         print('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
+        
+        # Számlázási periódus első napja (Origo - szerződés legelső napja)
+        first_day_of_the_contract_period = datetime.datetime.strptime(
+            contract['vl_szamlazasi_periodus_kezdete_szerzodes'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
+
+        print("Szamlazasi periodus elso napja: {}".format(first_day_of_the_contract_period))
+        
         #teljesítési periodus megadása
         if commandName=="monthly":
-            last_day_of_prev_month = datetime.datetime.today().replace(day=1)-relativedelta(days=1)
+            # Elemzett szamlazasi periodus vege
+            last_day_of_prev_month = (datetime.datetime.today().replace(day=1)-relativedelta(days=1)).date()
+
             if contract['vl_szamlazasi_periodus_szerzodes'] == 100000000:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+                deltaMonths = 0
+                monthsPeriodToAdd = 1
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=0
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000001:
+                deltaMonths = 2
+                monthsPeriodToAdd = 3
                 #billingStart=datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')
                 #while (billingStart+relativedelta(months=3))>last_day_of_prev_month:
                 #       billingStart=billingStart+relativedelta(months=3)
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=2       
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000002:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+                deltaMonths = 5
+                monthsPeriodToAdd = 6
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=5 
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000003:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days 
+                deltaMonths = 11
+                monthsPeriodToAdd = 12
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days 
                 billRowCount=11  
             else:
                 print('Nincs megadva periódus a szerződéhez')
                 continue
+
+            first_day_of_the_period = ((last_day_of_prev_month-relativedelta(months=deltaMonths)).replace(day=1))
+
+            print("Az elemzett periodus kezdesi datuma: {}".format(first_day_of_the_period))
+            
+            first_day_shifted = first_day_of_the_contract_period.date()
+            
+            while(first_day_shifted < first_day_of_the_period):
+                first_day_shifted = first_day_shifted + relativedelta(months=monthsPeriodToAdd)
+                print("+{} honappal: {}".format(monthsPeriodToAdd, first_day_shifted))
+
+            if (first_day_of_the_period == first_day_shifted):
+                print("A szerzodes szamlazhato!")
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+            else:
+                print("A szamlazasi periodus kezdodatuma nem talal!")
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+
+            periodDays = (last_day_of_prev_month - first_day_of_the_period).days + 1
+
+
         elif commandName=="daily":
-            last_day_of_current_month=(datetime.datetime.today()+relativedelta(months=1)).replace(day=1)-relativedelta(days=1)
+            last_day_of_current_month=((datetime.datetime.today()+relativedelta(months=1)).replace(day=1)-relativedelta(days=1)).date()
+            current_day = (datetime.datetime.today()).date()
             if contract['vl_szamlazasi_periodus_szerzodes'] == 100000000:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days
+                deltaMonths = 0
+                monthsPeriodToAdd = 1
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=0
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000001:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days
+                deltaMonths = 2
+                monthsPeriodToAdd = 3
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=2            
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000002:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days   
+                deltaMonths = 5
+                monthsPeriodToAdd = 6
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days   
                 billRowCount=5
             elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000003:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days  
+                deltaMonths = 11
+                monthsPeriodToAdd = 12
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=11 
             else:
                 print('Nincs megadva periódus a szerződéhez')
                 continue
+
+            first_day_of_the_period = ((last_day_of_current_month-relativedelta(months=deltaMonths)).replace(day=1))
+
+            print("Az elemzett periodus kezdesi datuma: {}".format(first_day_of_the_period))
+            
+            first_day_shifted = first_day_of_the_contract_period.date()
+            
+            while(first_day_shifted < first_day_of_the_period):
+                first_day_shifted = first_day_shifted + relativedelta(months=monthsPeriodToAdd)
+                print("+{} honappal: {}".format(monthsPeriodToAdd, first_day_shifted))
+
+            if (first_day_of_the_period == first_day_shifted):
+                print("A szerzodes szamlazhato!")
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+            else:
+                print("A szamlazasi periodus kezdodatuma nem talal!")
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+
+            periodDays = (current_day - first_day_of_the_period).days + 1
+
+            print("Szerzodes aktualis periodusa: {} - {} --- hossza: {} nap".format(
+                first_day_of_the_period, current_day, periodDays))
+
         print('Periódus hossza: '+str(periodDays))
+
         #Szerződés sorainak listázása
         filt = {
             'filter1': {
