@@ -1,4 +1,5 @@
 import datetime
+from distutils.cmd import Command
 from math import prod
 import os
 from dateutil.relativedelta import relativedelta
@@ -33,17 +34,21 @@ client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
 token = get_token(auth_url, client_id, scope, client_secret)
 access_token = token[0]['access_token']
 header_token = {"Authorization": "Bearer {}".format(access_token)}
-bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
-bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
-
+bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
+bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+#bcHead=[]
+#bcLine=[]
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     my_app_setting_value = os.environ["Test"]
     logging.info(f'My app setting value:{my_app_setting_value}')
     logging.info('Python HTTP trigger function processed a request.')
-    req_body = req.get_json()
-    commandName = req_body.get('name')
+    req_json = req.get_json()
+    req_body = req_json.get('name')
+    commandName=req_body.get('Futas')
+    method=req_body.get('Parancs')
+    testData=req_body
     logging.info(commandName)
     # Connect to Dataverse
     logging.info("\n ---------------------------------- CONNECT TO DATAVERSE ---------------------------------- ")
@@ -66,9 +71,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
     }
     logging.info("Listing CustomerGroups with limit handle level")
-    listedCustomerGroups = ro.queryRecords(filt, 'vl_limit_megadasi_helye_szintje,vl_name', 'vl_vevocsoports', config)
+    listedCustomerGroups=[]
+    if method != 'test':
+        listedCustomerGroups = ro.queryRecords(filt, 'vl_limit_megadasi_helye_szintje,vl_name,vl_vevocsoport_szamlazasi_periodus,vl_vevocs_szamlazasi_periodus_kezdete', 'vl_vevocsoports', config)
+    else:
+        for customerGroup in testData['Vevocsoportok']:
+            if customerGroup['vl_limit_megadasi_helye_szintje'] is True:
+                listedCustomerGroups.append(customerGroup)
     if listedCustomerGroups != -1:
-        limit_on_customergroup(listedCustomerGroups,commandName,config)
+        limit_on_customergroup(listedCustomerGroups,commandName,method,testData,config)
     
     filt = {
             'filter1': {
@@ -78,7 +89,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
     }
     logging.info("Listing Customers with limit handle level")
-    listedCustomers = ro.queryRecords(filt, 'name,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+    listedCustomers=[]
+    if method != 'test':
+        listedCustomers = ro.queryRecords(filt, 'name,vl_szamlazasi_periodus,vl_szamlazasi_periodus_kezdete,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+    else:
+        for customer in testData['Partnerek']:
+            if customer['vl_limitfigyeles_szintje_partner'] is True:
+                listedCustomers.append(customer)
     #Szerződések szűréséhez, ha kikerülne a partner a listából mert van fölötte lévő szint
     listedCustomersForContracts = listedCustomers[:]
     if listedCustomers != -1:
@@ -87,14 +104,19 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 if customer['_parentaccountid_value'] is None:
                     pass
                 else:
-                    parentCustomer=ro.getRecord(customer['_parentaccountid_value'],'accounts',config)
+                    if method != 'test':
+                        parentCustomer=ro.getRecord(customer['_parentaccountid_value'],'accounts',config)
+                    else:
+                        for parent in listedCustomers:
+                            if customer['_parentaccountid_value'] == parent['accountid']:
+                                parentCustomer=parent
                     if parentCustomer['vl_limitfigyeles_szintje_partner'] is True:
                         listedCustomers.remove(customer)
             for customer in listedCustomers:
                 for group in listedCustomerGroups:
                     if customer['_vl_vevocsoport_partner_value'] == group['vl_vevocsoportid']:
                         listedCustomers.remove(customer)
-        limit_on_customer(listedCustomers,commandName,100000001,[0,0,0,0,0,0,0],config)
+        limit_on_customer(listedCustomers,commandName,method,testData,100000001,None,None,[0,0,0,0,0,0,0,0],None,None,config)
     
     filt = {
             'filter1': {
@@ -104,19 +126,27 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             }
     }
     logging.info("Listing Contracts with limit handle level")
-    listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+    listedContracts=[]
+    if method != 'test':
+        listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+    else:
+        for contract in testData['Szerzodesek']:
+            if contract['vl_limit_figyeles_szintje_szerz'] is True:
+                listedContracts.append(contract)
     if listedContracts != -1:
         if listedCustomersForContracts != -1:
             for contract in list(listedContracts):
+                #Teszthez
+                #if contract['vl_szerzodesszam']=='ADSZERZ-001065':
+                #    limit_on_contract([contract],commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
                 if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
                     listedContracts.remove(contract)
                 else:
                     for customer in listedCustomersForContracts:
                         if customer['accountid'] == contract['_vl_ugyfel_value']:
                             listedContracts.remove(contract)
-        limit_on_contract(listedContracts,commandName,100000000,[0,0,0,0,0,0,0],config)
+        limit_on_contract(listedContracts,commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
     return func.HttpResponse("Sikeres futás")
-
 
 def calculate_correction(periodStart,periodEnd,periodDays,linePeriodStart,linePeriodEnd):
     if (datetime.datetime.today()-periodStart-relativedelta(days=periodDays)).days<=0:
@@ -155,7 +185,7 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
         else: return False
     else: return False
 
-def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit):
+def AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit):
     if contractLine['vl_limittel_erintett_szerzodessor'] is True:
         #ha nincs megadva számlázás vége akkor a szerződés vége lesz az ??mivan ha ez sincs?
         if contractLine['vl_szamlazas_vege'] is None: 
@@ -166,9 +196,11 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
         else:
             szamlazasVege = datetime.datetime.strptime(contractLine['vl_szamlazas_vege'].split('T')[0],'%Y-%m-%d')
         if contractLine['vl_szamlazas_kezdete'] is None:
-            billingStart=contract['vl_szamlazasi_periodus_kezdete_szerzodes']
+            billingStart=periodStart
         else: billingStart=contractLine['vl_szamlazas_kezdete']
-        correction=calculate_correction(datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d'),datetime.datetime.strptime(contract['vl_szerzodes_lejarata'].split('T')[0],'%Y-%m-%d'),periodDays,datetime.datetime.strptime(billingStart.split('T')[0],'%Y-%m-%d'),szamlazasVege)
+        if contract['vl_szerzodes_lejarata'] is None:
+            contract['vl_szerzodes_lejarata']="2060-01-01T00:00:00Z"
+        correction=calculate_correction(datetime.datetime.strptime(periodStart.split('T')[0],'%Y-%m-%d'),datetime.datetime.strptime(contract['vl_szerzodes_lejarata'].split('T')[0],'%Y-%m-%d'),periodDays,datetime.datetime.strptime(billingStart.split('T')[0],'%Y-%m-%d'),szamlazasVege)
         logging.info("Korrekció: "+str(correction))
         postedSalesInvoiceLines=[]
         postedSalesInvoiceHeads=[]
@@ -194,7 +226,7 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(contract['vl_szamlazasi_periodus_kezdete_szerzodes'],contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
@@ -203,7 +235,7 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
             token = get_token(auth_url, client_id, scope, client_secret)
             access_token = token[0]['access_token']
             header_token = {"Authorization": "Bearer {}".format(access_token)}
-            products = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Development/ODataV4/Company('Dallmayr')/VL_Item_Card", headers=header_token).json()["value"]
+            products = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/Cikk_karton_Excel", headers=header_token).json()["value"]
             if contractLine['vl_limitertek_alapja'] == 100000000:
                     for line in postedSalesInvoiceLines:
                             for product in products:
@@ -219,18 +251,15 @@ def AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProd
                             return float(line['Quantity'])
             else: return 0
         else: return 0            
-            
 
-            
-
-
-            
-
-
-def limit_on_customergroup(listedCustomerGroups,commandName,config):
+def limit_on_customergroup(listedCustomerGroups,commandName,method,testData,config):
     for group in listedCustomerGroups:
         #[eladottKg,eladottOsszeg,eladottMennyiseg,limitKg,limitOsszeg,limitMennyiseg,vegosszeg]
-        dailyDataVcs=[0,0,0,0,0,0,0]
+        dailyDataVcs=[0,0,0,0,0,0,0,0]
+        currPeriodStart=None
+        currPeriodEnd=None
+        period=group['vl_vevocsoport_szamlazasi_periodus']
+        periodStart=group['vl_vevocs_szamlazasi_periodus_kezdete']
         filt = {
             'filter1': {
                 'field': '_vl_vevocsoport_partner_value',
@@ -238,17 +267,28 @@ def limit_on_customergroup(listedCustomerGroups,commandName,config):
                 'value': group['vl_vevocsoportid']
             }
         }
-        listedCustomers = ro.queryRecords(filt, 'name,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+        listedCustomers=[]
+        if method!='test':
+            listedCustomers = ro.queryRecords(filt, 'name,vl_szamlazasi_periodus,vl_szamlazasi_periodus_kezdete,vl_limitfigyeles_szintje_partner,_vl_vevocsoport_partner_value,_parentaccountid_value', 'accounts', config)
+        else:
+            for customer in testData['Partnerek']:
+                if customer['_vl_vevocsoport_partner_value'] == group['vl_vevocsoportid']:
+                    listedCustomers.append(customer)
         if listedCustomers != -1:
                 logging.info("-------------------------LIMIT ON CUSTOMERGROUP--------------------------")
                 for customer in list(listedCustomers):
                     if customer['_parentaccountid_value'] is None:
                         pass
                     else:
-                        parentCustomer=ro.getRecord(customer['_parentaccountid_value'],'accounts',config)
+                        if method != 'test':
+                            parentCustomer=ro.getRecord(customer['_parentaccountid_value'],'accounts',config)
+                        else:
+                            for parent in listedCustomers:
+                                if customer['_parentaccountid_value'] == parent['accountid']:
+                                    parentCustomer=parent
                         if parentCustomer['_vl_vevocsoport_partner_value'] ==group['vl_vevocsoportid']:
                             listedCustomers.remove(customer)
-                limit_on_customer(listedCustomers,commandName,100000002,dailyDataVcs,config)
+                limit_on_customer(listedCustomers,commandName,method,testData,100000002,currPeriodStart,currPeriodEnd,dailyDataVcs,period,periodStart,config)
                 if commandName=="daily" and not all(v == 0 for v in dailyDataVcs):
                     logging.info("Vevőcsoport neve: "+group['vl_name'])
                     logging.info("Eladott Kg: "+str(dailyDataVcs[0]))
@@ -257,7 +297,8 @@ def limit_on_customergroup(listedCustomerGroups,commandName,config):
                     logging.info("Limit Kg: "+str(dailyDataVcs[3]))
                     logging.info("Limit Összeg: "+str(dailyDataVcs[4]))
                     logging.info("Limit Mennyiség: "+str(dailyDataVcs[5]))
-                    logging.info("Számlázandó összeg: "+str(dailyDataVcs[6]))
+                    logging.info("Számlázandó összeg (Forint): "+str(dailyDataVcs[6]))
+                    logging.info("Számlázandó összeg (Euro): "+str(dailyDataVcs[7]))
                     data = {
                         "vl_eladott_kg_vcs":dailyDataVcs[0],
                         "vl_eladott_osszeg_vcs":dailyDataVcs[1],
@@ -266,16 +307,23 @@ def limit_on_customergroup(listedCustomerGroups,commandName,config):
                         "vl_limit_osszeg_vcs":dailyDataVcs[4],
                         "vl_limit_mennyiseg_vcs":dailyDataVcs[5],
                         "vl_vegosszeg_huf_vcs":str(dailyDataVcs[6]),
+                        "vl_vegosszeg_huf_vcs":str(dailyDataVcs[7]),
                         "vl_hatralevo_kg_vcs":dailyDataVcs[3]-dailyDataVcs[0],
                         "vl_hatralevo_osszeg_vcs":dailyDataVcs[4]-dailyDataVcs[1],
-                        "vl_hatralevo_mennyiseg_vcs":dailyDataVcs[5]-dailyDataVcs[6]
+                        "vl_hatralevo_mennyiseg_vcs":dailyDataVcs[5]-dailyDataVcs[6],
+                        "vl_akt_sszaml_per_kezd_vcs":currPeriodStart,
+                        "vl_akt_sszaml_per_vege_vcs":currPeriodEnd
                     }
-                    ro.updateRecord(data,group['vl_vevocsoportid'],'vl_vevocsoports',config)
+                    if method !='test':
+                        ro.updateRecord(data,group['vl_vevocsoportid'],'vl_vevocsoports',config)
 
-def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config):
+def limit_on_customer(listedCustomers,commandName,method,testData,limitLevel,currPeriodStart,currPeriodEnd,dailyDataVcs,period,periodStart,config):
     for customer in listedCustomers:
+        if limitLevel==100000001:
+            period=customer['vl_szamlazasi_periodus']
+            periodStart=customer['vl_szamlazasi_periodus_kezdete']
         #[eladottKg,eladottOsszeg,eladottMennyiseg,limitKg,limitOsszeg,limitMennyiseg,vegosszeg]
-        dailyData=[0,0,0,0,0,0,0]
+        dailyData=[0,0,0,0,0,0,0,0]
         filt = {
             'filter1': {
                 'field': '_vl_ugyfel_value',
@@ -283,14 +331,20 @@ def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config
                 'value': customer['accountid']
             }
         }
-        listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+        listedContracts=[]
+        if method != 'test':
+            listedContracts = ro.queryRecords(filt, '_vl_szamlazasi_partner_szerzodes_value,vl_szerzodes_statusza,vl_jovahagyas_statusza,vl_szerzodesszam,vl_limit_figyeles_szintje_szerz,_vl_ugyfel_value,vl_szamlazasi_periodus_kezdete_szerzodes,vl_szamlazasi_periodus_szerzodes,vl_szerzodes_kategoria,vl_szerzodes_lejarata', 'vl_szerzodeseks', config)
+        else:
+            for contract in testData['Szerzodesek']:
+                if contract['_vl_ugyfel_value'] == customer['accountid']:
+                    listedContracts.append(contract)
         if listedContracts != -1:
-                logging.info("-------------------------LIMIT ON CUSTOMER--------------------------")
-            #for contract in list(listedContracts):
-                #if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
-                 #   listedContracts.remove(contract)
-            #if listedContracts != -1:
-                limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config)
+            logging.info("-------------------------LIMIT ON CUSTOMER--------------------------")
+            for contract in list(listedContracts):
+                if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
+                    listedContracts.remove(contract)
+            if listedContracts != -1:
+                limit_on_contract(listedContracts,commandName,method,testData,limitLevel,currPeriodStart,currPeriodEnd,dailyData,period,periodStart,config)
                 dailyDataVcs[0]+=dailyData[0]
                 dailyDataVcs[1]+=dailyData[1]
                 dailyDataVcs[2]+=dailyData[2]
@@ -298,6 +352,7 @@ def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config
                 dailyDataVcs[4]+=dailyData[4]
                 dailyDataVcs[5]+=dailyData[5]
                 dailyDataVcs[6]+=dailyData[6]
+                dailyDataVcs[7]+=dailyData[7]
                 if commandName=="daily" and limitLevel==100000001 and not all(v == 0 for v in dailyData):
                     logging.info("Partner neve: "+customer['name'])
                     logging.info("Eladott Kg: "+str(dailyData[0]))
@@ -306,7 +361,8 @@ def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config
                     logging.info("Limit Kg: "+str(dailyData[3]))
                     logging.info("Limit Összeg: "+str(dailyData[4]))
                     logging.info("Limit Mennyiség: "+str(dailyData[5]))
-                    logging.info("Számlázandó összeg: "+str(dailyData[6]))
+                    logging.info("Számlázandó összeg (Forint): "+str(dailyData[6]))
+                    logging.info("Számlázandó összeg (Euro): "+str(dailyData[7]))
                     data = {
                         "vl_eladott_kg_partner":dailyData[0],
                         "vl_eladott_osszeg_partner":dailyData[1],
@@ -315,14 +371,18 @@ def limit_on_customer(listedCustomers,commandName,limitLevel,dailyDataVcs,config
                         "vl_limit_osszeg_partner":dailyData[4],
                         "vl_limit_mennyiseg_partner":dailyData[5],
                         "vl_vegosszeg_huf":str(dailyData[6]),
+                        "vl_vegosszeg_eur_partner":str(dailyData[7]),
                         "vl_hatralevo_kg_partner":dailyData[3]-dailyData[0],
                         "vl_hatralevo_osszeg_partner":dailyData[4]-dailyData[1],
-                        "vl_hatralevo_mennyiseg_partner":dailyData[5]-dailyData[6]
+                        "vl_hatralevo_mennyiseg_partner":dailyData[5]-dailyData[6],
+                        "vl_akt_szaml_per_kezd_partner":currPeriodStart,
+                        "vl_akt_szaml_per_vege":currPeriodEnd
                     }
-                    ro.updateRecord(data,customer['accountid'],'accounts',config)
+                    if method != 'test':
+                        ro.updateRecord(data,customer['accountid'],'accounts',config)
         else: logging.info("Nincsenek szerződések a " + customer['name']+" nevű ügyfélhez")
 
-def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
+def limit_on_contract(listedContracts,commandName,method,testData,limitLevel,currPeriodStart,currPeriodEnd,dailyData,period,periodStart,config):
     logging.info("-------------------------LIMIT ON CONTRACT--------------------------")
     soldKgPartner=0
     soldHufPartner=0
@@ -331,51 +391,141 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
     limitHufPartner=0
     limitUnitPartner=0
     billPartner=0
+    billPartner2=0
+    runningFee=0
     for contract in listedContracts:
         logging.info('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
+        #csekkoljuk melyik szinten van a periódus
+        if limitLevel == 100000000:
+            period=contract['vl_szamlazasi_periodus_szerzodes']
+            periodStart=contract['vl_szamlazasi_periodus_kezdete_szerzodes']
+        # Számlázási periódus első napja (Origo - szerződés legelső napja)
+        first_day_of_the_contract_period = datetime.datetime.strptime(
+            periodStart, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
+
+        logging.info("Szamlazasi periodus elso napja: {}".format(first_day_of_the_contract_period))
+        
         #teljesítési periodus megadása
         if commandName=="monthly":
-            last_day_of_prev_month = datetime.datetime.today().replace(day=1)-relativedelta(days=1)
-            if contract['vl_szamlazasi_periodus_szerzodes'] == 100000000:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+            # Elemzett szamlazasi periodus vege
+            last_day_of_prev_month = (datetime.datetime.today().replace(day=1)-relativedelta(days=1)).date()
+
+            if period == 100000000:
+                deltaMonths = 0
+                monthsPeriodToAdd = 1
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=0
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000001:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+            elif period == 100000001:
+                deltaMonths = 2
+                monthsPeriodToAdd = 3
+                #billingStart=datetime.datetime.strptime(contract['vl_szamlazasi_periodus_kezdete_szerzodes'].split('T')[0],'%Y-%m-%d')
+                #while (billingStart+relativedelta(months=3))>last_day_of_prev_month:
+                #       billingStart=billingStart+relativedelta(months=3)
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=2       
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000002:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days
+            elif period == 100000002:
+                deltaMonths = 5
+                monthsPeriodToAdd = 6
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days
                 billRowCount=5 
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000003:
-                first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_prev_month-first_day_of_the_period).days 
+            elif period == 100000003:
+                deltaMonths = 11
+                monthsPeriodToAdd = 12
+                # first_day_of_the_period=(last_day_of_prev_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_prev_month-first_day_of_the_period).days 
                 billRowCount=11  
             else:
                 logging.info('Nincs megadva periódus a szerződéhez')
                 continue
+
+            first_day_of_the_period = ((last_day_of_prev_month-relativedelta(months=deltaMonths)).replace(day=1))
+
+            logging.info("Az elemzett periodus kezdesi datuma: {}".format(first_day_of_the_period))
+            
+            first_day_shifted = first_day_of_the_contract_period.date()
+            
+            while(first_day_shifted < first_day_of_the_period):
+                first_day_shifted = first_day_shifted + relativedelta(months=monthsPeriodToAdd)
+                logging.info("+{} honappal: {}".format(monthsPeriodToAdd, first_day_shifted))
+
+            if (first_day_of_the_period == first_day_shifted):
+                currPeriodStart=str(first_day_of_the_period)
+                currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd))
+                logging.info("A szerzodes szamlazhato!")
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+            else:
+                currPeriodStart=str(first_day_shifted)
+                currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd))
+                logging.info("A szamlazasi periodus kezdodatuma nem talal!")
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+
+            periodDays = (last_day_of_prev_month - first_day_of_the_period).days + 1
+
+
         elif commandName=="daily":
-            last_day_of_current_month=(datetime.datetime.today()+relativedelta(months=1)).replace(day=1)-relativedelta(days=1)
-            if contract['vl_szamlazasi_periodus_szerzodes'] == 100000000:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days
+            last_day_of_current_month=((datetime.datetime.today()+relativedelta(months=1)).replace(day=1)-relativedelta(days=1)).date()
+            current_day = (datetime.datetime.today()).date()
+            if period == 100000000:
+                deltaMonths = 0
+                monthsPeriodToAdd = 1
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=0)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=0
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000001:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days
+            elif period == 100000001:
+                deltaMonths = 2
+                monthsPeriodToAdd = 3
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=2)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=2            
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000002:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days   
+            elif period == 100000002:
+                deltaMonths = 5
+                monthsPeriodToAdd = 6
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=5)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days   
                 billRowCount=5
-            elif contract['vl_szamlazasi_periodus_szerzodes'] == 100000003:
-                first_day_of_the_period=(last_day_of_current_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
-                periodDays=(last_day_of_current_month-first_day_of_the_period).days  
+            elif period == 100000003:
+                deltaMonths = 11
+                monthsPeriodToAdd = 12
+                # first_day_of_the_period=(last_day_of_current_month-relativedelta(months=11)).replace(day=1)-relativedelta(days=1)
+                # periodDays=(last_day_of_current_month-first_day_of_the_period).days
                 billRowCount=11 
             else:
                 logging.info('Nincs megadva periódus a szerződéhez')
                 continue
+
+            first_day_of_the_period = ((last_day_of_current_month-relativedelta(months=deltaMonths)).replace(day=1))
+
+            logging.info("Az elemzett periodus kezdesi datuma: {}".format(first_day_of_the_period))
+            
+            first_day_shifted = first_day_of_the_contract_period.date()
+            
+            while(first_day_shifted < first_day_of_the_period):
+                first_day_shifted = first_day_shifted + relativedelta(months=monthsPeriodToAdd)
+                logging.info("+{} honappal: {}".format(monthsPeriodToAdd, first_day_shifted))
+
+            if (first_day_of_the_period == first_day_shifted):
+                currPeriodStart=str(first_day_of_the_period)
+                currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd))
+                logging.info("A szerzodes szamlazhato!")
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+            else:
+                currPeriodStart=str(first_day_shifted - relativedelta(months=monthsPeriodToAdd))
+                currPeriodEnd=str(first_day_shifted)
+                logging.info("A szamlazasi periodus kezdodatuma nem talal!")
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
+                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+
+            periodDays = (current_day - first_day_of_the_period).days + 1
+
+            logging.info("Szerzodes aktualis periodusa: {} - {} --- hossza: {} nap".format(
+                first_day_of_the_period, current_day, periodDays))
+
         logging.info('Periódus hossza: '+str(periodDays))
         #Szerződés sorainak listázása
         filt = {
@@ -385,8 +535,13 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
                 'value': contract['vl_szerzodesekid']
             }
         }
-        listedContractLines = ro.queryRecords(filt, 'vl_koztes_limit_berleti_dija_huf,vl_teljes_berleti_dij_huf,vl_fix_berleti_dij,vl_name,_vl_szerzodes_value,vl_limittel_erintett_szerzodessor,vl_limitertek_alapja,vl_szamlazas_kezdete,vl_szamlazas_vege,_vl_kapcsolodo_pos_value,vl_szamlazo,vl_limit_erteke,vl_limit_koztes_ertek,vl_berl_dij_min_nem_telj_eseten_fix,vl_berl_dij_min_telj_eseten_huf,vl_berl_dij_max_feletti_telj_eseten', 'vl_szerzodessorais', config)
-        
+        listedContractLines=[]
+        if method !='test':
+            listedContractLines = ro.queryRecords(filt, 'vl_koztes_limit_berleti_dija_huf,vl_koztes_limit_berleti_dija_eur,vl_teljes_berleti_dij_huf,vl_teljes_berleti_dij_eur,vl_fix_berleti_dij,vl_name,_vl_szerzodes_value,vl_limittel_erintett_szerzodessor,vl_limitertek_alapja,vl_szamlazas_kezdete,vl_szamlazas_vege,_vl_kapcsolodo_pos_value,vl_szamlazo,vl_limit_erteke,vl_limit_koztes_ertek,vl_berl_dij_min_nem_telj_eseten_fix,vl_berl_dij_min_telj_eseten_huf,vl_berl_dij_max_feletti_telj_eseten', 'vl_szerzodessorais', config)
+        else:
+            for contract in testData['Szerzodessorok']:
+                if contract['_vl_szerzodes_value'] == contract['vl_szerzodesekid']:
+                    listedContracts.append(contract)
         soldKg=0
         soldHuf=0
         soldUnit=0
@@ -413,13 +568,20 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
                     'value': contract['vl_szerzodesekid']
                 }
             }
-            contractProducts = ro.queryRecords(filt, '_vl_szerzodesek_limit_termek_value,vl_limitvizsgalatialap,_vl_kapcsolodo_termek_value,_vl_vallalt_termek_csoport_value', 'vl_limittermeksorais', config)
+            contractProducts=[]
+            if method !='test':
+                contractProducts = ro.queryRecords(filt, '_vl_szerzodesek_limit_termek_value,vl_limitvizsgalatialap,_vl_kapcsolodo_termek_value,_vl_vallalt_termek_csoport_value', 'vl_limittermeksorais', config)
+            else:
+                for product in testData['Limittermekek']:
+                    if product['_vl_szerzodesek_limit_termek_value'] == contract['vl_szerzodesekid']:
+                        contractProducts.append(product)
             contractProductsKg=[]
             contractProductsHuf=[]
             contractProductsUnit=[]
             if contractProducts == -1:
                 logging.info('Nincs megadva a szerződéshez termék')
                 continue
+            #ezt így utólag nemtudom jó e.
             for product in contractProducts:
                 if product['vl_limitvizsgalatialap']==100000000:
                     if product['_vl_kapcsolodo_termek_value'] is None or product['_vl_kapcsolodo_termek_value']=="":
@@ -450,30 +612,33 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
                 for contractLine in listedContractLines:
                     # Számlázó Dallmayr
                     if contractLine['vl_szamlazo'] == 100000001:
+                        if contractLine['_vl_kapcsolodo_pos_value'] is None:
+                            logging.info("HIII"+contractLine['vl_name'])
+                            continue
+                        pos=ro.getRecord(contractLine['_vl_kapcsolodo_pos_value'],'vl_poses',config)
+                        posDictionary[contractLine['vl_name']]=pos['vl_posid']
                         #limites sor
                         if contractLine['vl_limittel_erintett_szerzodessor']==True:
                             logging.info('Szerződés sor: '+contractLine['vl_name'])
-                            pos=ro.getRecord(contractLine['_vl_kapcsolodo_pos_value'],'vl_poses',config)
-                            posDictionary[contractLine['vl_name']]=pos['vl_pos_id']
                             logging.info('POS: '+str(pos['vl_pos_id']))
                             #Kg
                             if contractLine['vl_limitertek_alapja'] == 100000000:
-                                soldKg+=AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldKg+=AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitKg+=float(contractLine['vl_limit_erteke'])
                                 #if contractLine['vl_limit_koztes_ertek']:
                                 #    halfLimitKg+=float(contractLine['vl_limit_koztes_ertek'])
                             #Huf
                             elif contractLine['vl_limitertek_alapja'] == 100000001:
-                                soldHuf+=AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldHuf+=AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitHuf+=float(contractLine['vl_limit_erteke'])
                                 #if contractLine['vl_limit_koztes_ertek']:
                                 #    halfLimitHuf+=float(contractLine['vl_limit_koztes_ertek'])
                             #Unit
                             elif contractLine['vl_limitertek_alapja'] == 100000002:
-                                soldUnit+=AD_calculate(contractLine,contract,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldUnit+=AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitUnit+=float(contractLine['vl_limit_erteke'])
-                                #if contractLine['vl_limit_koztes_ertek']:
-                                #    halfLimitUnit+=float(contractLine['vl_limit_koztes_ertek'])
+                                if contractLine['vl_limit_koztes_ertek']:
+                                    halfLimitUnit+=float(contractLine['vl_limit_koztes_ertek'])
         '''if halfLimitHuf:
             halfLimitHuf=limitHuf*(halfLimitHuf/100)
         if halfLimitKg:
@@ -497,216 +662,293 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
             #logging.info('Köztes limit összeg: '+str(halfLimitHuf))
             #logging.info('Köztes limit mennyiség: '+str(halfLimitUnit))
             id=datetime.datetime.today().timestamp()
-            data = {
-                #"regardingobjectid@odata.bind": "incidents({})".format(incidentid),
-                "vl_eladott_kg":soldKg,
-                "vl_eladott_mennyiseg":soldUnit,
-                "vl_eladott_osszeg":soldHuf,
-                #"vl_koztes_limit_kg":halfLimitKg,
-                #"vl_koztes_limit_mennyiseg":halfLimitUnit,
-                #"vl_koztes_limit_osszeg":halfLimitHuf,
-                "vl_limit_kg":limitKg,
-                "vl_limit_mennyiseg":limitUnit,
-                "vl_limit_osszeg":limitHuf,
-                "vl_periodus":periodDays,
-                "vl_limit_szint":limitLevel,
-                "vl_name":contract['vl_szerzodesszam'],
-                #ideiglenes id mező
-                "vl_korrekcio":id
-            }
-            if ro.createRecord(data,'vl_szolgaltatasszamlazases',config) > 400:
-                logging.info("Nem sikerült a létrehozás!")
-            else:
-                filt = {
-                    'filter1': {
-                        'field': 'vl_limit_szint',
-                        'operator': 'eq',
-                        'value': str(limitLevel)
-                    }
+            missing=False
+            missingData={}
+            missingDataData=[]
+            missingDataLine={}
+            missingDataLineData=[]
+            if limitLevel==1000000002 and commandName=="monthly":
+                if contract['vl_szerzodesekid'] is None:
+                    missing=True               
+                    missingDataData.append(contract['vl_szerzodesekid'])
+                if contract['_vl_szamlazasi_partner_szerzodes_value'] is None:
+                    missing=True
+                    missingDataData.append("Számlázási Partner")
+                if contract['_vl_ugyfel_value'] is None:
+                    missing=True
+                    missingDataData.append("Ügyfél")
+                if ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value'] is None:
+                    missing=True
+                    missingDataData.append("Vevőcsoport")
+                if missing:
+                    missingData[contract['vl_szerzodesszam']]=missingDataData
+                data = {
+                    "vl_Szerzodes@odata.bind": "vl_szerzodeseks({})".format(contract['vl_szerzodesekid']),
+                    "vl_Szolgszaml_szamlazasi_partner@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
+                    "vl_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                    "vl_Vevocsoport@odata.bind":"accounts({})".format(ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value']),
+                    "vl_eladott_kg":soldKg,
+                    "vl_eladott_mennyiseg":soldUnit,
+                    "vl_eladott_osszeg":soldHuf,
+                    "vl_limit_kg":limitKg,
+                    "vl_limit_mennyiseg":limitUnit,
+                    "vl_limit_osszeg":limitHuf,
+                    "vl_periodus":periodDays,
+                    "vl_limit_szint":limitLevel,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    #ideiglenes id mező
+                    "vl_korrekcio":id
                 }
-                invoices=ro.queryRecords(filt,'vl_korrekcio,vl_name','vl_szolgaltatasszamlazases',config)
-                for record in invoices:
-                    if int(record['vl_korrekcio'])==int(id) and record['vl_name']==contract['vl_szerzodesszam']:
-                        invoice=record
+            elif commandName=="monthly":
+                if contract['vl_szerzodesekid'] is None:
+                    missing=True               
+                    missingDataData.append(contract['vl_szerzodesekid'])
+                if contract['_vl_szamlazasi_partner_szerzodes_value'] is None:
+                    missing=True
+                    missingDataData.append("Számlázási Partner")
+                if contract['_vl_ugyfel_value'] is None:
+                    missing=True
+                    missingDataData.append("Ügyfél")
+                if missing:
+                    missingData[contract['vl_szerzodesszam']]=missingDataData
+                data = {
+                    "vl_Szerzodes@odata.bind": "vl_szerzodeseks({})".format(contract['vl_szerzodesekid']),
+                    "vl_Szolgszaml_szamlazasi_partner@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
+                    "vl_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                    "vl_eladott_kg":soldKg,
+                    "vl_eladott_mennyiseg":soldUnit,
+                    "vl_eladott_osszeg":soldHuf,
+                    "vl_limit_kg":limitKg,
+                    "vl_limit_mennyiseg":limitUnit,
+                    "vl_limit_osszeg":limitHuf,
+                    "vl_periodus":periodDays,
+                    "vl_limit_szint":limitLevel,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    #ideiglenes id mező
+                    "vl_korrekcio":id
+                }
+            if commandName=="monthly" and missing:
+                data = {
+                    "vl_eladott_kg":soldKg,
+                    "vl_eladott_mennyiseg":soldUnit,
+                    "vl_eladott_osszeg":soldHuf,
+                    "vl_limit_kg":limitKg,
+                    "vl_limit_mennyiseg":limitUnit,
+                    "vl_limit_osszeg":limitHuf,
+                    "vl_periodus":periodDays,
+                    "vl_limit_szint":limitLevel,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    #ideiglenes id mező
+                    "vl_korrekcio":id
+                }
+                if method != 'test':
+                    if ro.createRecord(data,'vl_szolgaltatasszamlazases',config) >= 400:
+                        logging.info("Nem sikerült a létrehozás!")
+                    else:
+                        filt = {
+                            'filter1': {
+                                'field': 'vl_limit_szint',
+                                'operator': 'eq',
+                                'value': str(limitLevel)
+                            }
+                        }
+                        invoices=ro.queryRecords(filt,'vl_korrekcio,vl_name','vl_szolgaltatasszamlazases',config)
+                        for record in invoices:
+                            if int(record['vl_korrekcio'])==int(id) and record['vl_name']==contract['vl_szerzodesszam']:
+                                invoice=record
+            elif commandName=="monthly" and not missing:
+                if method != 'test':
+                    if ro.createRecord(data,'vl_szolgaltatasszamlazases',config) >= 400:
+                        logging.info("Nem sikerült a létrehozás!")
+                    else:
+                        filt = {
+                            'filter1': {
+                                'field': 'vl_limit_szint',
+                                'operator': 'eq',
+                                'value': str(limitLevel)
+                            }
+                        }
+                        
+                        invoices=ro.queryRecords(filt,'vl_korrekcio,vl_name','vl_szolgaltatasszamlazases',config)
+                        for record in invoices:
+                            if int(record['vl_korrekcio'])==int(id) and record['vl_name']==contract['vl_szerzodesszam']:
+                                invoice=record
+            deviza=100000000
+            for contractLine in listedContractLines:
+                missingDataLineData=[]
+                boolean=False
+                if (contractLine['vl_teljes_berleti_dij_huf'] is None and contractLine['vl_koztes_limit_berleti_dija_huf'] is None):
+                    if (contractLine['vl_teljes_berleti_dij_eur'] is None and contractLine['vl_koztes_limit_berleti_dija_eur'] is None):
+                        if contractLine['vl_fix_berleti_dij'] is None:
+                            logging.info(contractLine)
+                            boolean=True
+                            missingDataLineData.append("Bérleti díjak")
+                if not contractLine['vl_name'] in posDictionary:
+                    boolean=True
+                    missingDataLineData.append("POS")
+                if boolean:
+                    missing=True
+                    missingDataLine[contractLine['vl_name']]=missingDataLineData
             for i in range(billRowCount+1):
-                if soldKg >= limitKg and soldUnit >= limitUnit and soldHuf >= limitHuf:
+                if soldKg >= limitKg and soldUnit >= limitUnit and soldHuf >= limitHuf and not missing:
                     for contractLine in listedContractLines:
-                        logging.info(contractLine)
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
-                            data = {
-                                "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                                "vl_name":contractLine['vl_name'],
-                                "vl_szerzodes":contract['vl_szerzodesszam'],
-                                "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                                "vl_dij_tipus":100000002,
-                                "vl_szamlazando_osszeg":contractLine['vl_fix_berleti_dij'],
-                                "vl_berl_uzem_dij_kedv":0,
-                                "vl_berl_uzem_dij_kedv_eredeti":0
-                            }
                             if commandName=="monthly":
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    logging.info("Nem sikerült a létrehozás!")
+                                data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_name":contractLine['vl_name'],
+                                    "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
+                                    "vl_dij_tipus":100000002,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
+                                    "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
+                                }
+                                if method != 'test':
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor fix díjas:')
-                            logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
-                            billPartner+=int(contractLine['vl_fix_berleti_dij'])
+                            logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
+                            if contractLine['vl_fix_berleti_dij'] is not None:
+                                    billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
+                            else: billPartner+=0
                         else:
-                            data = {
-                                "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                                "vl_name":contractLine['vl_name'],
-                                "vl_pos":posDictionary[contractLine['vl_name']],
-                                "vl_szerzodes":contract['vl_szerzodesszam'],
-                                "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                                "vl_dij_tipus":100000000,
-                                "vl_szamlazando_osszeg":0,
-                                "vl_berl_uzem_dij_kedv":100,
-                                "vl_berl_uzem_dij_kedv_eredeti":100
-                            }
                             if commandName=="monthly":
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    logging.info("Nem sikerült a létrehozás!")
+                                data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_name":contractLine['vl_name'],
+                                    "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
+                                    "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
+                                    "vl_dij_tipus":100000000,
+                                    "vl_berl_uzem_dij_kedv_eredeti":100,
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e")
+                                }
+                                if method != 'test':
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor elérte a limitet:')
                             logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
-                else:
+                elif not missing:
                     for contractLine in listedContractLines:
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
-                            data = {
-                                "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                                "vl_name":contractLine['vl_name'],
-                                "vl_szerzodes":contract['vl_szerzodesszam'],
-                                "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                                "vl_dij_tipus":100000002,
-                                "vl_szamlazando_osszeg":contractLine['vl_fix_berleti_dij'],
-                                "vl_berl_uzem_dij_kedv":0,
-                                "vl_berl_uzem_dij_kedv_eredeti":0
-                            }
                             if commandName=="monthly":
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    logging.info("Nem sikerült a létrehozás!")
+                                data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_name":contractLine['vl_name'],
+                                    "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
+                                    "vl_dij_tipus":100000002,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
+                                    "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
+                                }
+                                if method != 'test':
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor fix díjas:')
-                            logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
-                            billPartner+=int(contractLine['vl_fix_berleti_dij'])
+                            logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
+                            if contractLine['vl_fix_berleti_dij'] is not None:
+                                    billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
                         elif contractLine['vl_limit_koztes_ertek']:
                             if soldKg >= float(contractLine['vl_limit_erteke'])*limitKg and soldUnit >= float(contractLine['vl_limit_erteke'])*limitUnit and soldHuf >= float(contractLine['vl_limit_erteke'])*limitHuf:
-                                data = {
-                                    "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
+                                logging.info('A következő sor elérte a köztes limitet:')
+                                if contractLine['vl_koztes_limit_berleti_dija_huf'] is not None:
+                                    deviza=100000000
+                                    runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                    billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
+                                    logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft")
+                                elif contractLine['vl_koztes_limit_berleti_dija_eur'] is not None:
+                                    deviza=100000001
+                                    logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur")
+                                    billPartner2+=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
+                                    runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                if commandName=="monthly":
+                                    data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
-                                    "vl_pos":posDictionary[contractLine['vl_name']],
-                                    "vl_szerzodes":contract['vl_szerzodesszam'],
+                                    "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
                                     "vl_dij_tipus":100000001,
-                                    "vl_szamlazando_osszeg":contractLine['vl_koztes_limit_berleti_dija_huf'],
-                                    "vl_berl_uzem_dij_kedv":int(100*float(contractLine['vl_limit_erteke'])),
-                                    "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke']))
+                                    "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke'])),
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
-                                if commandName=="monthly":
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                        logging.info("Nem sikerült a létrehozás!")
-                                logging.info('A következő sor elérte a köztes limitet:')
-                                logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(int(contractLine['vl_koztes_limit_berleti_dija_huf']))+"Ft")
-                                billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
+                                    if method != 'test':
+                                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                            logging.info("Nem sikerült a létrehozás!")
                             else:
-                                data = {
-                                    "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
+                                logging.info('A következő sor nem érte el egyik limitet sem:')
+                                if contractLine['vl_teljes_berleti_dij_huf'] is not None:
+                                    deviza=100000000
+                                    logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft")
+                                    billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                    runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                if contractLine['vl_teljes_berleti_dij_eur'] is not None:
+                                    runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                    deviza=100000001
+                                    logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur")
+                                    billPartner2+=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                if commandName=="monthly":
+                                    data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
-                                    "vl_pos":posDictionary[contractLine['vl_name']],
-                                    "vl_szerzodes":contract['vl_szerzodesszam'],
+                                    "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
                                     "vl_dij_tipus":100000003,
-                                    "vl_szamlazando_osszeg":contractLine['vl_teljes_berleti_dij_huf'],
-                                    "vl_berl_uzem_dij_kedv":0,
-                                    "vl_berl_uzem_dij_kedv_eredeti":0
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
-                                if commandName=="monthly":
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                        logging.info("Nem sikerült a létrehozás!")
-                                logging.info('A következő sor nem érte el egyik limitet sem:')
-                                logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
-                                billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                    if method != 'test':
+                                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                            logging.info("Nem sikerült a létrehozás!")
                         else:
-                            data = {
-                                "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                                "vl_name":contractLine['vl_name'],
-                                "vl_pos":posDictionary[contractLine['vl_name']],
-                                "vl_szerzodes":contract['vl_szerzodesszam'],
-                                "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                                "vl_dij_tipus":100000003,
-                                "vl_szamlazando_osszeg":contractLine['vl_teljes_berleti_dij_huf'],
-                                "vl_berl_uzem_dij_kedv":0,
-                                "vl_berl_uzem_dij_kedv_eredeti":0
-                            }
-                            if commandName=="monthly":
-                                if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                                    logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor nem érte el egyik limitet sem:')
-                            logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
-                            billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
-            ''' elif soldKg >= halfLimitKg and soldUnit >= halfLimitUnit and soldHuf >= halfLimitHuf:
-                for contractLine in listedContractLines:
-                    if contractLine['vl_limittel_erintett_szerzodessor'] is False:
-                        data = {
-                            "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                            "vl_name":contractLine['vl_name'],
-                            "vl_szerzodes":contract['vl_szerzodesszam'],
-                            "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                            "vl_dij_tipus":100000002,
-                            "vl_szamlazando_osszeg":contractLine['vl_fix_berleti_dij']
-                        }
-                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                            logging.info("Nem sikerült a létrehozás!")
-                        logging.info('A következő sor fix díjas:')
-                        logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
-                    else:
-                        data = {
-                            "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                            "vl_name":contractLine['vl_name'],
-                            "vl_pos":posDictionary[contractLine['vl_name']],
-                            "vl_szerzodes":contract['vl_szerzodesszam'],
-                            "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                            "vl_dij_tipus":100000001,
-                            "vl_szamlazando_osszeg":contractLine['vl_koztes_limit_berleti_dija_huf']
-                        }
-                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                            logging.info("Nem sikerült a létrehozás!")
-                        logging.info('A következő sor elérte a köztes limitet:')
-                        logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(int(contractLine['vl_koztes_limit_berleti_dija_huf']))+"Ft")
-            else:
-                for contractLine in listedContractLines:
-                    if contractLine['vl_limittel_erintett_szerzodessor'] is False:
-                        data = {
-                            "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                            "vl_name":contractLine['vl_name'],
-                            "vl_szerzodes":contract['vl_szerzodesszam'],
-                            "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                            "vl_dij_tipus":100000002,
-                            "vl_szamlazando_osszeg":contractLine['vl_fix_berleti_dij']
-                        }
-                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                            logging.info("Nem sikerült a létrehozás!")
-                        logging.info('A következő sor fix díjas:')
-                        logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_fix_berleti_dij']))+"Ft")
-                    else:
-                        data = {
-                            "vl_vevo@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
-                            "vl_name":contractLine['vl_name'],
-                            "vl_pos":posDictionary[contractLine['vl_name']],
-                            "vl_szerzodes":contract['vl_szerzodesszam'],
-                            "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
-                            "vl_dij_tipus":100000003,
-                            "vl_szamlazando_osszeg":contractLine['vl_teljes_berleti_dij_huf']
-                        }
-                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) > 400:
-                            logging.info("Nem sikerült a létrehozás!")
-                        logging.info('A következő sor nem érte el egyik limitet sem:')
-                        logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(int(contractLine['vl_teljes_berleti_dij_huf']))+"Ft")
-            '''
+                            if contractLine['vl_teljes_berleti_dij_huf'] is not None:
+                                deviza=100000000
+                                runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft")
+                            if contractLine['vl_teljes_berleti_dij_eur'] is not None:
+                                deviza=100000001
+                                runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                billPartner2+=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur")
+                            if commandName=="monthly":
+                                data = {
+                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_name":contractLine['vl_name'],
+                                    "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
+                                    "vl_szolgaltatas_szamlazas@odata.bind":"vl_szolgaltatasszamlazases({})".format(invoice['vl_szolgaltatasszamlazasid']),
+                                    "vl_dij_tipus":100000003,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
+                                    "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
+                                }
+                                if method != 'test':
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        logging.info("Nem sikerült a létrehozás!")
+        dailyData[0]=soldKg
+        dailyData[1]=soldHuf
+        dailyData[2]=soldUnit
+        dailyData[3]=limitKg
+        dailyData[4]=limitHuf
+        dailyData[5]=limitUnit
+        dailyData[6]=billPartner
+        dailyData[7]=billPartner2
         if commandName=="daily" and limitLevel==100000000:
-            dailyData[0]=soldKgPartner
-            dailyData[1]=soldHufPartner
-            dailyData[2]=soldUnitPartner
-            dailyData[3]=limitKgPartner
-            dailyData[4]=limitHufPartner
-            dailyData[5]=limitUnitPartner
-            dailyData[6]=billPartner
             logging.info(contract['vl_szerzodesszam'])
             logging.info("Eladott Kg: "+str(dailyData[0]))
             logging.info("Eladott Összeg: "+str(dailyData[1]))
@@ -714,7 +956,8 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
             logging.info("Limit Kg: "+str(dailyData[3]))
             logging.info("Limit Összeg: "+str(dailyData[4]))
             logging.info("Limit Mennyiség: "+str(dailyData[5]))
-            logging.info("Számlázandó összeg: "+str(dailyData[6]))
+            logging.info("Számlázandó összeg (Forint): "+str(dailyData[6]))
+            logging.info("Számlázandó összeg (Euro): "+str(dailyData[7]))
             data = {
                 "vl_eladott_kgs_szerz":dailyData[0],
                 "vl_eladott_osszeg_szerz":dailyData[1],
@@ -723,11 +966,42 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
                 "vl_limit_osszeg_szerz":dailyData[4],
                 "vl_limit_mennyiseg_szerz":dailyData[5],
                 "vl_vegosszeg_huf":str(dailyData[6]),
+                "vl_vegosszeg_eur":str(dailyData[7]),
                 "vl_hatralevo_kg_szerz":dailyData[3]-dailyData[0],
                 "vl_hatralevo_osszeg_szerz":dailyData[4]-dailyData[1],
-                "vl_hatralevo_mennyiseg_szerz":dailyData[5]-dailyData[6]
+                "vl_hatralevo_mennyiseg_szerz":dailyData[5]-dailyData[6],
+                "vl_akt_sszaml_per_kezd_szerz":currPeriodStart,
+                "vl_akt_sszaml_per_vege_szerz":currPeriodEnd,
             }
-            ro.updateRecord(data,contract['vl_szerzodesekid'],'vl_szerzodeseks',config)
+            if method != 'test':
+                ro.updateRecord(data,contract['vl_szerzodesekid'],'vl_szerzodeseks',config)
+        if commandName=="monthly" and listedContractLines!=-1 and invoice is not None:
+            percentage=0
+            divider=0
+            for i in [0,1,2]:
+                if dailyData[i] > 0: 
+                    percentage+=dailyData[i+3]/dailyData[i]
+                    divider+=1
+            if divider >0:
+                data= {
+                    "vl_vegosszeghuf":dailyData[6],
+                    "vl_vegosszegeur":dailyData[7],
+                    "vl_limittelj_szazaleka":percentage/divider,
+                    "vl_megjegyzes":json.dumps(missingData | missingDataLine),
+                    #"vl_megjegyzes":len(json.dumps(missingData | missingDataLine))>2 and "Hiányos" or "Nem hiányos",
+                    'vl_szamla_statusz_oka':100000005
+                }
+            else:
+                data= {
+                    "vl_vegosszeghuf":dailyData[6],
+                    "vl_vegosszegeur":dailyData[7],
+                    "vl_limittelj_szazaleka":0,
+                    "vl_megjegyzes":json.dumps(missingData | missingDataLine),
+                    #"vl_megjegyzes":len(json.dumps(missingData | missingDataLine))>2 and "Hiányos" or "Nem hiányos",
+                    'vl_szamla_statusz_oka':100000005
+                }
+            if method != 'test':
+                ro.updateRecord(data,invoice['vl_szolgaltatasszamlazasid'],'vl_szolgaltatasszamlazases',config)
     dailyData[0]=soldKgPartner
     dailyData[1]=soldHufPartner
     dailyData[2]=soldUnitPartner
@@ -735,5 +1009,6 @@ def limit_on_contract(listedContracts,commandName,limitLevel,dailyData,config):
     dailyData[4]=limitHufPartner
     dailyData[5]=limitUnitPartner
     dailyData[6]=billPartner
+    dailyData[7]=billPartner2
 if __name__ == "__main__":
     main()
