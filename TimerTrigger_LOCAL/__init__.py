@@ -54,8 +54,10 @@ def main():
     }
 
     print("\n ---------------------------------- CHECK LIMIT HANDLING LEVEL ---------------------------------- ")
-
-    filt = {
+    
+    # Csak egyetlen szerződésre leszűkítve a helyi teszteléshez.
+    # UNCOMMENT - a teljes teszteléshez
+    '''filt = {
             'filter1': {
                 'field': 'vl_limit_megadasi_helye_szintje',
                 'operator': 'eq',
@@ -108,8 +110,9 @@ def main():
                 for group in listedCustomerGroups:
                     if customer['_vl_vevocsoport_partner_value'] == group['vl_vevocsoportid']:
                         listedCustomers.remove(customer)
-        limit_on_customer(listedCustomers,commandName,method,testData,100000001,None,None,[0,0,0,0,0,0,0,0],None,None,config)
-    
+        limit_on_customer(listedCustomers,commandName,method,testData,100000001,None,None,[0,0,0,0,0,0,0,0],None,None,config)'''
+        # UNCOMMENT END- a teljes teszteléshez
+
     filt = {
             'filter1': {
                 'field': 'vl_limit_figyeles_szintje_szerz',
@@ -126,18 +129,22 @@ def main():
             if contract['vl_limit_figyeles_szintje_szerz'] is True:
                 listedContracts.append(contract)
     if listedContracts != -1:
-        if listedCustomersForContracts != -1:
+        # UNCOMMENT - a teljes teszteléshez
+        # if listedCustomersForContracts != -1:
             for contract in list(listedContracts):
                 #Teszthez
-                #if contract['vl_szerzodesszam']=='ADSZERZ-001065':
-                #    limit_on_contract([contract],commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
+                if contract['vl_szerzodesszam']=='ADSZERZ-001057':
+                   limit_on_contract([contract],commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
+                   # Teszthez END
                 if contract['vl_szerzodes_statusza']!=100000003 or contract['vl_jovahagyas_statusza']!=True:
                     listedContracts.remove(contract)
-                else:
-                    for customer in listedCustomersForContracts:
-                        if customer['accountid'] == contract['_vl_ugyfel_value']:
-                            listedContracts.remove(contract)
-        limit_on_contract(listedContracts,commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
+        # UNCOMMENT - a teljes teszteléshez
+        #         else:
+        #             for customer in listedCustomersForContracts:
+        #                 if customer['accountid'] == contract['_vl_ugyfel_value']:
+        #                     listedContracts.remove(contract)
+        # limit_on_contract(listedContracts,commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
+        # UNCOMMENT END- a teljes teszteléshez
 
 def calculate_correction(periodStart,periodEnd,periodDays,linePeriodStart,linePeriodEnd):
     if (datetime.datetime.today()-periodStart-relativedelta(days=periodDays)).days<=0:
@@ -170,7 +177,11 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
         if datetime.datetime.strptime(posVatDate,'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays):
             return True
         else: return False
-    elif periodStart <= posVatDate and posVatDate <= periodEnd: 
+    elif periodStart <= posVatDate and posVatDate <= periodEnd:
+        
+        posVatDate = datetime.datetime.strptime(posVatDate,'%Y-%m-%d')
+        linePeriodStart = datetime.datetime.strptime(linePeriodStart.split('T')[0],'%Y-%m-%d')
+
         if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and posVatDate >= datetime.datetime.today()-relativedelta(days=periodDays): 
             return True
         else: return False
@@ -181,7 +192,7 @@ def AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,
         #ha nincs megadva számlázás vége akkor a szerződés vége lesz az ??mivan ha ez sincs?
         if contractLine['vl_szamlazas_vege'] is None: 
             if contract['vl_szerzodes_lejarata'] is None:
-                szamlazasVege=""
+                szamlazasVege = datetime.datetime.strptime("2060-01-01", '%Y-%m-%d')
             else:
                 szamlazasVege = datetime.datetime.strptime(str(contract['vl_szerzodes_lejarata']).split('T')[0],'%Y-%m-%d')
         else:
@@ -217,7 +228,7 @@ def AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],szamlazasVege,periodDays,head['Shipment_Date']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése

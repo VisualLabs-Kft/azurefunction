@@ -10,6 +10,7 @@ from . import recordOperations as ro
 import requests
 import http.client
 import azure.functions as func
+from dateutil import tz
 
 def get_token(auth_url, client_id, scope, client_secret, grant_type = 'client_credentials'):
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -179,8 +180,13 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
         if datetime.datetime.strptime(posVatDate,'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays):
             return True
         else: return False
-    elif periodStart <= posVatDate and posVatDate <= periodEnd: 
-        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and posVatDate >= datetime.datetime.today()-relativedelta(days=periodDays): 
+    elif periodStart <= posVatDate and posVatDate <= periodEnd:
+        
+        tempPosVatDate = datetime.datetime.strptime(posVatDate,'%Y-%m-%d')
+        tempLinePeriodStart = datetime.datetime.strptime(linePeriodStart.split('T')[0],'%Y-%m-%d')
+        tempLinePeriodEnd = linePeriodEnd
+
+        if tempLinePeriodStart <= tempPosVatDate and tempPosVatDate <= tempLinePeriodEnd and tempPosVatDate >= datetime.datetime.today()-relativedelta(days=periodDays): 
             return True
         else: return False
     else: return False
@@ -190,7 +196,7 @@ def AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,
         #ha nincs megadva számlázás vége akkor a szerződés vége lesz az ??mivan ha ez sincs?
         if contractLine['vl_szamlazas_vege'] is None: 
             if contract['vl_szerzodes_lejarata'] is None:
-                szamlazasVege=""
+                szamlazasVege = datetime.datetime.strptime("2060-01-01", '%Y-%m-%d')
             else:
                 szamlazasVege = datetime.datetime.strptime(str(contract['vl_szerzodes_lejarata']).split('T')[0],'%Y-%m-%d')
         else:
@@ -226,7 +232,7 @@ def AD_calculate(contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],szamlazasVege,periodDays,head['Shipment_Date']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
