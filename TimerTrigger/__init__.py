@@ -660,8 +660,8 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         posDictionary[contractLine['vl_name']]=pos['vl_posid']
                         #limites sor
                         if contractLine['vl_limittel_erintett_szerzodessor']==True:
-                            logging.info('Szerződés sor: '+contractLine['vl_name'])
-                            response[0]=response[0]+"\nSzerződés sor: "+contractLine['vl_name']
+                            logging.info('Szerződés sor: '+str(contractLine['vl_name']))
+                            response[0]=response[0]+"\nSzerződés sor: "+str(contractLine['vl_name'])
                             logging.info('POS: '+str(pos['vl_pos_id']))
                             response[0]=response[0]+"\nPOS: "+str(pos['vl_pos_id'])
                             #Kg
