@@ -153,7 +153,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                             listedContracts.remove(contract)
         limit_on_contract(response,listedContracts,commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
     
-    return func.HttpResponse(response[0])
+    return func.HttpResponse("Sikeres futtatás!")
 
 def calculate_correction(periodStart,periodEnd,periodDays,linePeriodStart,linePeriodEnd):
     if (datetime.datetime.today()-periodStart-relativedelta(days=periodDays)).days<=0:
