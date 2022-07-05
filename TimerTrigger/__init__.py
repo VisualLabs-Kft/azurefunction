@@ -847,12 +847,20 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     missing=True
                     missingDataLine[contractLine['vl_name']]=missingDataLineData
             for i in range(billRowCount+1):
+                #
+                # Teljes limit elerve -- Fix dij/Limit elerve
+                #
                 if soldKg >= limitKg and soldUnit >= limitUnit and soldHuf >= limitHuf and not missing:
                     for contractLine in listedContractLines:
                         if contractLine['vl_teljes_berleti_dij_huf'] is not None:
                                 deviza=100000000
+                                totalFee=contractLine['vl_teljes_berleti_dij_huf']
                         elif contractLine['vl_teljes_berleti_dij_eur'] is not None:
                                 deviza=100000001
+                                totalFee=contractLine['vl_teljes_berleti_dij_eur']
+                        # 
+                        # HA nem limites szerzodes -- Fix dijas
+                        # 
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
                             if commandName=="monthly":
                                 data = {
@@ -862,7 +870,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_dij_tipus":100000002,
                                     "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
                                     "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
@@ -875,6 +883,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             if contractLine['vl_fix_berleti_dij'] is not None:
                                     billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
                             else: billPartner+=0
+                        # 
+                        # HA limites szerzodes -- Limit elerve
+                        # 
                         else:
                             if commandName=="monthly":
                                 data = {
@@ -886,7 +897,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berl_uzem_dij_kedv_eredeti":100,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
                                     "vl_berleti_uzemeltetesi_dij_deviza":deviza,
-                                    "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
+                                    "vl_berleti_uzemeltetesi_dij":totalFee
                                 }
                                 if method != 'test':
                                     if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
@@ -895,13 +906,15 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
                             response[0]=response[0]+"\nA következő sor elérte a limitet:"
                             response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft'
+                # 
+                # Teljes limitet nem erte el
+                # 
                 elif not missing:
                     for contractLine in listedContractLines:
+                        # 
+                        # Ha nem limites szerzodessor -- Fix dijas
+                        # 
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
-                            if contractLine['vl_teljes_berleti_dij_huf'] is not None:
-                                    deviza=100000000
-                            elif contractLine['vl_teljes_berleti_dij_eur'] is not None:
-                                    deviza=100000001
                             if commandName=="monthly":
                                 data = {
                                     "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
@@ -910,7 +923,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_dij_tipus":100000002,
                                     "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
                                     "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
@@ -922,7 +935,13 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft"
                             if contractLine['vl_fix_berleti_dij'] is not None:
                                     billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
+                        # 
+                        # Ha van megadva limit koztes ertek
+                        # 
                         elif contractLine['vl_limit_koztes_ertek']:
+                            # 
+                            # Ha elerte a koztes limitet -- Koztes limit elerve
+                            # 
                             if soldKg >= float(contractLine['vl_limit_erteke'])*limitKg and soldUnit >= float(contractLine['vl_limit_erteke'])*limitUnit and soldHuf >= float(contractLine['vl_limit_erteke'])*limitHuf:
                                 logging.info('A következő sor elérte a köztes limitet:')
                                 response[0]=response[0]+"\nA következő sor elérte a köztes limitet:"
@@ -953,6 +972,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     if method != 'test':
                                         if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
                                             logging.info("Nem sikerült a létrehozás!")
+                            # 
+                            # Ha nem erte el a koztes limitet sem -- Teljes dij
+                            # 
                             else:
                                 logging.info('A következő sor nem érte el egyik limitet sem:')
                                 response[0]=response[0]+"\nA következő sor nem érte el egyik limitet sem:"
@@ -983,6 +1005,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     if method != 'test':
                                         if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
                                             logging.info("Nem sikerült a létrehozás!")
+                        # 
+                        # Ha nem ert el limitet (se teljes, se koztes) -- Teljes dij
+                        # 
                         else:
                             logging.info('A következő sor nem érte el egyik limitet sem:')
                             response[0]=response[0]+"\nA következő sor nem érte el egyik limitet sem:"
