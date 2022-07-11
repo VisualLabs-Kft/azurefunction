@@ -901,7 +901,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor fix díjas:')
                             logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
@@ -927,7 +927,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":totalFee
                                 }
                                 if method != 'test':
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor elérte a limitet:')
                             logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
@@ -954,7 +954,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         logging.info("Nem sikerült a létrehozás!")
                             logging.info('A következő sor fix díjas:')
                             logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
@@ -997,7 +997,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                     if method != 'test':
-                                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                             logging.info("Nem sikerült a létrehozás!")
                             # 
                             # Ha nem erte el a koztes limitet sem -- Teljes dij
@@ -1030,7 +1030,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                     if method != 'test':
-                                        if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                        if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                             logging.info("Nem sikerült a létrehozás!")
                         # 
                         # Ha nem ert el limitet (se teljes, se koztes) -- Teljes dij
@@ -1063,7 +1063,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                 if method != 'test':
-                                    if ro.createRecord(data,'vl_szolgaltatasszamlazassorais',config) >= 400:
+                                    if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         logging.info("Nem sikerült a létrehozás!")
         dailyData[0]=soldKg
         dailyData[1]=soldHuf
