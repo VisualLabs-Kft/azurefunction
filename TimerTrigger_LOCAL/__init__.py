@@ -314,6 +314,7 @@ def limit_on_customergroup(response,listedCustomerGroups,commandName,method,test
                     response[0]=response[0]+"\nLimit Kg: "+str(dailyDataVcs[3])
                     response[0]=response[0]+"\nLimit Összeg: "+str(dailyDataVcs[4])
                     response[0]=response[0]+"\nLimit Mennyiség: "+str(dailyDataVcs[5])
+            response[0]=response[0]+"\nSzámlázandó összeg (Forint): "+str(dailyDataVcs[6])
                     response[0]=response[0]+"\nSzámlázandó összeg (Euro): "+str(dailyDataVcs[7])
                     data = {
                         "vl_eladott_kg_vcs":dailyDataVcs[0],
@@ -387,6 +388,7 @@ def limit_on_customer(response,listedCustomers,commandName,method,testData,limit
                     response[0]=response[0]+"\nLimit Kg: "+str(dailyData[3])
                     response[0]=response[0]+"\nLimit Összeg: "+str(dailyData[4])
                     response[0]=response[0]+"\nLimit Mennyiség: "+str(dailyData[5])
+                    response[0]=response[0]+"\nSzámlázandó összeg (Forint): "+str(dailyData[6])
                     response[0]=response[0]+"\nSzámlázandó összeg (Euro): "+str(dailyData[7])
                     data = {
                         "vl_eladott_kg_partner":dailyData[0],
@@ -1078,6 +1080,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             response[0]=response[0]+"\nLimit Kg: "+str(dailyData[3])
             response[0]=response[0]+"\nLimit Összeg: "+str(dailyData[4])
             response[0]=response[0]+"\nLimit Mennyiség: "+str(dailyData[5])
+            response[0]=response[0]+"\nSzámlázandó összeg (Forint): "+str(dailyData[6])
             response[0]=response[0]+"\nSzámlázandó összeg (Euro): "+str(dailyData[7])
             data = {
                 "vl_eladott_kgs_szerz":dailyData[0],
