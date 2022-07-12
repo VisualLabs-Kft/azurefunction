@@ -755,7 +755,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_limit_szint":limitLevel,
                     "vl_name":contract['vl_szerzodesszam'],
                     "vl_szolg_szamla_tipusa":100000000,
-                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
@@ -786,7 +786,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_limit_szint":limitLevel,
                     "vl_name":contract['vl_szerzodesszam'],
                     "vl_szolg_szamla_tipusa":100000000,
-                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
@@ -803,7 +803,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_limit_szint":limitLevel,
                     "vl_name":contract['vl_szerzodesszam'],
                     "vl_szolg_szamla_tipusa":100000000,
-                    "vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
@@ -877,7 +877,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
                             if commandName=="monthly":
                                 data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000002,
@@ -902,7 +902,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         else:
                             if commandName=="monthly":
                                 data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
@@ -930,7 +930,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         if contractLine['vl_limittel_erintett_szerzodessor'] is False:
                             if commandName=="monthly":
                                 data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000002,
@@ -972,7 +972,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
                                 if commandName=="monthly":
                                     data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
@@ -1005,7 +1005,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     billPartner2+=int(contractLine['vl_teljes_berleti_dij_eur'])
                                 if commandName=="monthly":
                                     data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
@@ -1038,7 +1038,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur")
                             if commandName=="monthly":
                                 data = {
-                                    "vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
+                                    "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
                                     "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
