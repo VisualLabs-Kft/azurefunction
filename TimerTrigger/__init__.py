@@ -764,15 +764,15 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_eladott_kg":soldKg,
                     "vl_eladott_mennyiseg":soldUnit,
                     "vl_eladott_osszeg":soldHuf,
-                    "vl_Limit_kg":limitKg,
+                    "vl_limit_kg":limitKg,
                     "vl_limit_mennyiseg":limitUnit,
                     "vl_limit_osszeg":limitHuf,
                     "vl_periodus":periodDays,
                     "vl_limit_szint":limitLevel,
-                    "vl_Name":contract['vl_szerzodesszam'],
-                    "vl_Szolg_szamla_tipusa":100000000,
-                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
-                    "vl_Aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -795,15 +795,15 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_eladott_kg":soldKg,
                     "vl_eladott_mennyiseg":soldUnit,
                     "vl_eladott_osszeg":soldHuf,
-                    "vl_Limit_kg":limitKg,
+                    "vl_limit_kg":limitKg,
                     "vl_limit_mennyiseg":limitUnit,
                     "vl_limit_osszeg":limitHuf,
                     "vl_periodus":periodDays,
                     "vl_limit_szint":limitLevel,
-                    "vl_Name":contract['vl_szerzodesszam'],
-                    "vl_Szolg_szamla_tipusa":100000000,
-                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
-                    "vl_Aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -812,15 +812,15 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_eladott_kg":soldKg,
                     "vl_eladott_mennyiseg":soldUnit,
                     "vl_eladott_osszeg":soldHuf,
-                    "vl_Limit_kg":limitKg,
+                    "vl_limit_kg":limitKg,
                     "vl_limit_mennyiseg":limitUnit,
                     "vl_limit_osszeg":limitHuf,
                     "vl_periodus":periodDays,
                     "vl_limit_szint":limitLevel,
-                    "vl_Name":contract['vl_szerzodesszam'],
-                    "vl_Szolg_szamla_tipusa":100000000,
-                    "vl_vl_Aktualis_szamlazasi_per_kez":currPeriodStart,
-                    "vl_Aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_name":contract['vl_szerzodesszam'],
+                    "vl_szolg_szamla_tipusa":100000000,
+                    "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
+                    "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -894,13 +894,13 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             if commandName=="monthly":
                                 data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000002,
-                                    "vl_Berl_Uzem_dij_kedv_eredeti":0,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":100000000,
-                                    "vl_Berleti_Uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
+                                    "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -919,14 +919,14 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             if commandName=="monthly":
                                 data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000000,
-                                    "vl_Berl_Uzem_dij_kedv_Eredeti":100,
+                                    "vl_berl_bzem_dij_kedv_eredeti":100,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":deviza,
-                                    "vl_Berleti_Uzemeltetesi_dij":totalFee
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":totalFee
                                 }
                                 if method != 'test':
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -947,13 +947,13 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             if commandName=="monthly":
                                 data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000002,
-                                    "vl_Berl_Uzem_dij_kedv_Eredeti":0,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":100000000,
-                                    "vl_Berleti_Uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
+                                    "vl_berleti_uzemeltetesi_dij_deviza":100000000,
+                                    "vl_berleti_uzemeltetesi_dij":contractLine['vl_fix_berleti_dij']
                                 }
                                 if method != 'test':
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -989,14 +989,14 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 if commandName=="monthly":
                                     data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000001,
-                                    "vl_Berl_Uzem_dij_kedv_Eredeti":int(100*float(contractLine['vl_limit_erteke'])),
+                                    "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke'])),
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":deviza,
-                                    "vl_Berleti_Uzemeltetesi_dij":runningFee
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                     if method != 'test':
                                         if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -1022,14 +1022,14 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 if commandName=="monthly":
                                     data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000003,
-                                    "vl_Berl_Uzem_dij_kedv_Eredeti":0,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":deviza,
-                                    "vl_Berleti_Uzemeltetesi_dij":runningFee
+                                    "vl_berleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                     if method != 'test':
                                         if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -1055,14 +1055,14 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             if commandName=="monthly":
                                 data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                                    "vl_Name":contractLine['vl_name'],
+                                    "vl_name":contractLine['vl_name'],
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000003,
-                                    "vl_Berl_Uzem_dij_kedv_Eredeti":0,
+                                    "vl_berl_uzem_dij_kedv_eredeti":0,
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
-                                    "vl_Berleti_Uzemeltetesi_dij_deviza":deviza,
-                                    "vl_Berleti_Uzemeltetesi_dij":runningFee
+                                    "vl_erleti_uzemeltetesi_dij_deviza":deviza,
+                                    "vl_berleti_uzemeltetesi_dij":runningFee
                                 }
                                 if method != 'test':
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
@@ -1120,21 +1120,21 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     divider+=1
             if divider >0:
                 data= {
-                    "vl_Vegosszeghuf":dailyData[6],
-                    "vl_Vegosszegeur":dailyData[7],
+                    "vl_vegosszeghuf":dailyData[6],
+                    "vl_vegosszegeur":dailyData[7],
                     "vl_limittelj_szazaleka":percentage/divider,
-                    "vl_Megjegyzes":json.dumps(missingData | missingDataLine),
+                    "vl_megjegyzes":json.dumps(missingData | missingDataLine),
                     #"vl_megjegyzes":len(json.dumps(missingData | missingDataLine))>2 and "Hiányos" or "Nem hiányos",
-                    'vl_Szamla_statusz_oka':100000005
+                    'vl_szamla_statusz_oka':100000005
                 }
             else:
                 data= {
-                    "vl_Vegosszeghuf":dailyData[6],
-                    "vl_Vegosszegeur":dailyData[7],
+                    "vl_vegosszeghuf":dailyData[6],
+                    "vl_vegosszegeur":dailyData[7],
                     "vl_limittelj_szazaleka":0,
-                    "vl_Megjegyzes":json.dumps(missingData | missingDataLine),
-                    #"vl_Megjegyzes":len(json.dumps(missingData | missingDataLine))>2 and "Hiányos" or "Nem hiányos",
-                    'vl_Szamla_statusz_oka':100000005
+                    "vl_megjegyzes":json.dumps(missingData | missingDataLine),
+                    #"vl_megjegyzes":len(json.dumps(missingData | missingDataLine))>2 and "Hiányos" or "Nem hiányos",
+                    'vl_szamla_statusz_oka':100000005
                 }
             if method != 'test':
                 ro.updateRecord(data,invoice['vl_szolgaltatasszamlaid'],'vl_szolgaltatasszamlas',config)
