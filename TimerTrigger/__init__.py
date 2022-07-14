@@ -592,6 +592,11 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
         response[0]=response[0]+"\nPeriódus hossza: "+str(periodDays)
         response[0]=response[0]+"\nAktuális periódus kezdete:"+currPeriodStart
         response[0]=response[0]+"\nAktuális periódus vége:"+currPeriodEnd
+        # Ellenőrzés - Ha még nem járt le a periódus
+        last_day_of_current_month=str(((datetime.datetime.today()+relativedelta(months=1)).replace(day=1)-relativedelta(days=1)).date())
+        if currPeriodEnd > last_day_of_current_month:
+            print("A szerződés még nem számlázandó")
+            continue
         #Szerződés sorainak listázása
         filt = {
             'filter1': {
@@ -620,14 +625,21 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
          # Ellenőzés - Számlázandó vagy nem - Még csak a múltbéli számla van kezelve
         if listedContractLines != -1:
             for contractLine in listedContractLines:
+                # Ha a számlázás vége korábban van, mint az aktuális periódus kezdete = Már nem kell számlázni
                 if contractLine['vl_szamlazas_vege'] is not None and contractLine['vl_szamlazas_vege'] != "None":
                     currentPeriodStart = first_day_shifted
-                    currentPeriodEnd = first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1)
                     szamlazasVege = datetime.datetime.strptime(contractLine['vl_szamlazas_vege'].split('T')[0],'%Y-%m-%d').date()
-
                     if szamlazasVege < currentPeriodStart:
                         print("Már nem számlázandó szerződéssor: {}".format(contractLine['vl_name']))
                         response[0]=response[0]+"\nMár nem számlázandó szerződéssor: {}".format(contractLine['vl_name'])
+                        listedContractLines.remove(contractLine)
+                # Ha számlázás kezdete később van, mint az aktuális periódus vége = Még nem kell számlázni
+                if contractLine['vl_szamlazas_kezdete'] is not None and contractLine['vl_szamlazas_kezdete'] != "None":
+                    currentPeriodEnd = first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1)
+                    szamlazasKezdete = datetime.datetime.strptime(contractLine['vl_szamlazas_kezdete'].split('T')[0],'%Y-%m-%d').date()
+                    if szamlazasKezdete > currentPeriodEnd:
+                        print("Még nem számlázandó szerződéssor: {}".format(contractLine['vl_name']))
+                        response[0]=response[0]+"\nMég nem számlázandó szerződéssor: {}".format(contractLine['vl_name'])
                         listedContractLines.remove(contractLine)
 
 
