@@ -200,7 +200,7 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
             return True
         else: return False
     elif periodStart <= posVatDate and posVatDate <= periodEnd:
-        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and posVatDate >= datetime.datetime.today()-relativedelta(days=periodDays): 
+        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate.split('T')[0],'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays): 
             return True
         else: return False
     else: return False
@@ -616,6 +616,21 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
         halfLimitKg=0
         halfLimitHuf=0
         halfLimitUnit=0
+
+         # Ellenőzés - Számlázandó vagy nem - Még csak a múltbéli számla van kezelve
+        if listedContractLines != -1:
+            for contractLine in listedContractLines:
+                if contractLine['vl_szamlazas_vege'] is not None and contractLine['vl_szamlazas_vege'] != "None":
+                    currentPeriodStart = first_day_shifted
+                    currentPeriodEnd = first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1)
+                    szamlazasVege = datetime.datetime.strptime(contractLine['vl_szamlazas_vege'].split('T')[0],'%Y-%m-%d').date()
+
+                    if szamlazasVege < currentPeriodStart:
+                        print("Már nem számlázandó szerződéssor: {}".format(contractLine['vl_name']))
+                        response[0]=response[0]+"\nMár nem számlázandó szerződéssor: {}".format(contractLine['vl_name'])
+                        listedContractLines.remove(contractLine)
+
+
         if listedContractLines !=-1:
             #Szerződés termék sorainak listázása
             filt = {
