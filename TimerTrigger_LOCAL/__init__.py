@@ -41,7 +41,7 @@ bcLine=[]
 def main():
     commandName='monthly'
     method='test'
-    testData={ "Parancs":"test", "Futas":"monthly", "Szamlafejek":{ "values":[ { "No":"TESZT-SZLA00001", "Shipment_Date":"2022-06-10T00:00:00Z" } ] }, "Szamlasorok":{ "values":[ { "Shortcut_Dimension_2_Code":"P100001000", "No":"411002-EU", "Document_No":"TESZT-SZLA00001", "Quantity":1, "Amount":1000, "Unit_of_Measure":"DB" }, { "Shortcut_Dimension_2_Code":"P100001000", "No":435207, "Document_No":"TESZT-SZLA00001", "Quantity":1, "Amount":1000, "Unit_of_Measure":"DB" } ] }, "Vevocsoportok":[ ], "Partnerek":[ { "name":"Teszt Partner_000001", "vl_limitfigyeles_szintje_partner":False, "_vl_vevocsoport_partner_value":"None", "_parentaccountid_value":"None", "accountid":"67616d24-f35d-ec11-8f8f-111111111111", "vl_szamlazasi_periodus":"None", "vl_szamlazasi_periodus_kezdete":"None", "vl_akt_szaml_per_vege":"None" } ], "Szerzodesek":[ { "_vl_szamlazasi_partner_szerzodes_value":"67616d24-f35d-ec11-8f8f-111111111111", "vl_szerzodes_statusza":100000002, "vl_jovahagyas_statusza":True, "vl_szerzodesszam":"TEST_001000", "vl_limit_figyeles_szintje_szerz":True, "_vl_ugyfel_value":"67616d24-f35d-ec11-8f8f-111111111111", "vl_szamlazasi_periodus_kezdete_szerzodes":"2022-02-01T00:00:00Z", "vl_szamlazasi_periodus_szerzodes":100000000, "vl_szerzodes_kategoria":100000000, "vl_szerzodes_lejarata":"2023-09-30T00:00:00Z", "vl_szerzodesekid":"324c7596-0972-ec11-8943-111111111001" } ], "Szerzodessorok":[ { "vl_koztes_limit_berleti_dija_huf":"None", "vl_koztes_limit_berleti_dija_eur":"None", "vl_teljes_berleti_dij_huf":"None", "vl_teljes_berleti_dij_eur":"None", "vl_fix_berleti_dij":6000, "vl_name":"TEST_001000-SOR-00002", "_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111001", "vl_limittel_erintett_szerzodessor":False, "vl_limitertek_alapja":"None", "vl_szamlazas_kezdete":"2022-03-01T00:00:00Z", "vl_szamlazas_vege":"None", "_vl_kapcsolodo_pos_value":"6d5ea8d3-1a5f-ec11-8f8f-000d3a2324d1", "vl_szamlazo":100000001, "vl_limit_erteke":"None", "vl_limit_koztes_ertek":"None", "vl_berl_dij_min_nem_telj_eseten_fix":"None", "vl_berl_dij_min_telj_eseten_huf":"None", "vl_berl_dij_max_feletti_telj_eseten":"None", "vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000001" }, { "vl_koztes_limit_berleti_dija_huf":"None", "vl_koztes_limit_berleti_dija_eur":26.05, "vl_teljes_berleti_dij_huf":"None", "vl_teljes_berleti_dij_eur":51, "vl_fix_berleti_dij":"None", "vl_name":"TEST_001000-SOR-00001", "_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111001", "vl_limittel_erintett_szerzodessor":True, "vl_limitertek_alapja":100000000, "vl_szamlazas_kezdete":"2022-03-01T00:00:00Z", "vl_szamlazas_vege":"None", "_vl_kapcsolodo_pos_value":"6d5ea8d3-1a5f-ec11-8f8f-000d3a2324d1", "vl_szamlazo":100000001, "vl_limit_erteke":50, "vl_limit_koztes_ertek":80, "vl_berl_dij_min_nem_telj_eseten_fix":"None", "vl_berl_dij_min_telj_eseten_huf":"None", "vl_berl_dij_max_feletti_telj_eseten":"None", "vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000000" } ], "Limittermekek":[ { "_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111001", "vl_limitvizsgalatialap":100000000, "_vl_kapcsolodo_termek_value":"None", "_vl_vallalt_termek_csoport_value":"1cb1c410-c45c-ec11-8f8f-000d3a2f82d0", "vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000002" }, { "_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111001", "vl_limitvizsgalatialap":100000000, "_vl_kapcsolodo_termek_value":"None", "_vl_vallalt_termek_csoport_value":"f3b0c410-c45c-ec11-8f8f-000d3a2f82d0", "vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000001" }, { "_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111001", "vl_limitvizsgalatialap":100000000, "_vl_kapcsolodo_termek_value":"None", "_vl_vallalt_termek_csoport_value":"2cb1c410-c45c-ec11-8f8f-000d3a2f82d0", "vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000003" } ] }
+    testData={"Parancs":"test","Futas":"monthly","Szamlafejek":{"values":[{"No":"TESZT-SZLA00004","DALHUNLOCVATDate":"2022-06-16"},{"No":"TESZT-SZLA00003","DALHUNLOCVATDate":"2022-06-10"}]},"Szamlasorok":{"values":[{"Shortcut_Dimension_2_Code":"P100001003","No":"411002-EU","Document_No":"TESZT-SZLA00004","Quantity":1,"Amount":4500,"Unit_of_Measure":"DB"},{"Shortcut_Dimension_2_Code":"P100001002","No":"411002-EU","Document_No":"TESZT-SZLA00003","Quantity":1,"Amount":4000,"Unit_of_Measure":"DB"}]},"Vevocsoportok":[],"Partnerek":[{"name":"Teszt Partner_000003","vl_limitfigyeles_szintje_partner":False,"_vl_vevocsoport_partner_value":"None","_parentaccountid_value":"None","accountid":"67616d24-f35d-ec11-8f8f-111111111113","vl_szamlazasi_periodus":"None","vl_szamlazasi_periodus_kezdete":"None","vl_akt_szaml_per_vege":"None"}],"Szerzodesek":[{"_vl_szamlazasi_partner_szerzodes_value":"67616d24-f35d-ec11-8f8f-111111111113","vl_szerzodes_statusza":100000002,"vl_jovahagyas_statusza":True,"vl_szerzodesszam":"TEST_001002","vl_limit_figyeles_szintje_szerz":True,"_vl_ugyfel_value":"67616d24-f35d-ec11-8f8f-111111111113","vl_szamlazasi_periodus_kezdete_szerzodes":"2022-02-01T00:00:00Z","vl_szamlazasi_periodus_szerzodes":100000000,"vl_szerzodes_kategoria":100000000,"vl_szerzodes_lejarata":"2023-09-30T00:00:00Z","vl_szerzodesekid":"324c7596-0972-ec11-8943-111111111003"}],"Szerzodessorok":[{"vl_koztes_limit_berleti_dija_huf":"None","vl_koztes_limit_berleti_dija_eur":26,"vl_teljes_berleti_dij_huf":"None","vl_teljes_berleti_dij_eur":51,"vl_fix_berleti_dij":"None","vl_name":"TEST_001002-SOR-00001","_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111003","vl_limittel_erintett_szerzodessor":True,"vl_limitertek_alapja":100000001,"vl_szamlazas_kezdete":"2022-03-01T00:00:00Z","vl_szamlazas_vege":"None","_vl_kapcsolodo_pos_value":"715ea8d3-1a5f-ec11-8f8f-000d3a2324d1","vl_szamlazo":100000001,"vl_limit_erteke":5000,"vl_limit_koztes_ertek":60,"vl_berl_dij_min_nem_telj_eseten_fix":"None","vl_berl_dij_min_telj_eseten_huf":"None","vl_berl_dij_max_feletti_telj_eseten":"None","vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000005"},{"vl_koztes_limit_berleti_dija_huf":"None","vl_koztes_limit_berleti_dija_eur":26,"vl_teljes_berleti_dij_huf":"None","vl_teljes_berleti_dij_eur":51,"vl_fix_berleti_dij":"None","vl_name":"TEST_001002-SOR-00002","_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111003","vl_limittel_erintett_szerzodessor":True,"vl_limitertek_alapja":100000001,"vl_szamlazas_kezdete":"2022-03-01T00:00:00Z","vl_szamlazas_vege":"None","_vl_kapcsolodo_pos_value":"735ea8d3-1a5f-ec11-8f8f-000d3a2324d1","vl_szamlazo":100000001,"vl_limit_erteke":5000,"vl_limit_koztes_ertek":60,"vl_berl_dij_min_nem_telj_eseten_fix":"None","vl_berl_dij_min_telj_eseten_huf":"None","vl_berl_dij_max_feletti_telj_eseten":"None","vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000006"}],"Limittermekek":[{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"3e20ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000017"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"2f20ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000016"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"8a1fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000012"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"0cb8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000014"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"1ab8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000020"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"0f1fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000007"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"181fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000008"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"4820ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000018"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"f6b7c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000011"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"02b8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000013"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"2620ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000015"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"eab7c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000010"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"5220ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000019"}]}
     global bcHead
     global bcLine
     if method=='test':
@@ -186,7 +186,7 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
             return True
         else: return False
     elif periodStart <= posVatDate and posVatDate <= periodEnd:
-        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate.split('T')[0],'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays): 
+        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate,'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays): 
             return True
         else: return False
     else: return False
@@ -233,7 +233,7 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['DALHUNLOCVATDate']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
@@ -433,9 +433,8 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             print("Nincs megadva a periódus kezdete")
             response[0]=response[0]+"\nNincs megadva a periódus kezdete"
             continue
-        first_day_of_the_contract_period = datetime.datetime.strptime(
-            periodStart, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
-
+        first_day_of_the_contract_period = datetime.datetime.strptime(periodStart, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
+        first_day_of_the_contract_period = first_day_of_the_contract_period+relativedelta(hours=3)
         print("Szamlazasi periodus elso napja: {}".format(first_day_of_the_contract_period))
         
         #teljesítési periodus megadása
@@ -489,8 +488,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                 currPeriodStart=str(first_day_of_the_period)
                 currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1))
                 print("A szerzodes szamlazhato!")
-                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
-                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
             else:
                 currPeriodStart=str(first_day_shifted)
                 currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1))
@@ -502,8 +500,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     print("Akt1:"+str(currPeriodStart))
                     print("Akt2:"+str(currPeriodEnd))
                     continue
-                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
-                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+                print("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
 
             periodDays = (last_day_of_prev_month - first_day_of_the_period).days + 1
 
@@ -610,7 +607,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
 
         # Ellenőzés - Számlázandó sor vagy nem
         if listedContractLines != -1:
-            for contractLine in listedContractLines:
+            for contractLine in listedContractLines[:]:
                 # Ha a számlázás vége korábban van, mint az aktuális periódus kezdete = Már nem kell számlázni
                 if contractLine['vl_szamlazas_vege'] is not None and contractLine['vl_szamlazas_vege'] != "None":
                     currentPeriodStart = first_day_shifted
@@ -619,6 +616,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         print("Már nem számlázandó szerződéssor: {}".format(contractLine['vl_name']))
                         response[0]=response[0]+"\nMár nem számlázandó szerződéssor: {}".format(contractLine['vl_name'])
                         listedContractLines.remove(contractLine)
+                        continue
                 # Ha számlázás kezdete később van, mint az aktuális periódus vége = Még nem kell számlázni
                 if contractLine['vl_szamlazas_kezdete'] is not None and contractLine['vl_szamlazas_kezdete'] != "None":
                     currentPeriodEnd = first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1)
@@ -627,7 +625,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         print("Még nem számlázandó szerződéssor: {}".format(contractLine['vl_name']))
                         response[0]=response[0]+"\nMég nem számlázandó szerződéssor: {}".format(contractLine['vl_name'])
                         listedContractLines.remove(contractLine)
-
+                        continue
         if listedContractLines !=-1:
             #Szerződés termék sorainak listázása
             filt = {
@@ -752,7 +750,17 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             missingDataData=[]
             missingDataLine={}
             missingDataLineData=[]
-            if limitLevel==1000000002 and commandName=="monthly":
+
+            # Szerződés szintű köztes limit érték meghatározása
+            interimLimitPercentage = 0
+            for contractLine in listedContractLines:
+                if limitLevel == 100000000:
+                    if contractLine['vl_limit_koztes_ertek'] is not None and contractLine['vl_limit_koztes_ertek'] != 'None':
+                        interimLimitPercentage += contractLine['vl_limit_koztes_ertek']
+            interimLimitValue = round(interimLimitPercentage/len(listedContractLines))
+            # ----------------------------------------------
+
+            if limitLevel==100000002 and commandName=="monthly":
                 if contract['vl_szerzodesekid'] is None or contract['vl_szerzodesekid']=='None':
                     missing=True               
                     missingDataData.append(contract['vl_szerzodesekid'])
@@ -763,7 +771,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     missing=True
                     missingDataData.append("Ügyfél")
                 if  method!='test':
-                    if ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value'] is None:
+                    if ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_partner_value'] is None:
                         missing=True
                         missingDataData.append("Vevőcsoport")
                 if missing:
@@ -772,7 +780,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_Szerzodesek@odata.bind": "vl_szerzodeseks({})".format(contract['vl_szerzodesekid']),
                     "vl_Szolgszaml_szamlazasi_partner@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
                     "vl_Account@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                    "vl_Vevocsoport@odata.bind":"accounts({})".format(ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value']),
+                    "vl_Vevocsoport@odata.bind":"vl_vevocsoports({})".format(ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_partner_value']),
                     "vl_eladott_kg":soldKg,
                     "vl_eladott_mennyiseg":soldUnit,
                     "vl_eladott_osszeg":soldHuf,
@@ -785,6 +793,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -816,6 +825,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -857,7 +867,6 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                 if method != 'test':
                     if ro.createRecord(data,'vl_szolgaltatasszamlas',config) >= 400:
                         print(" Nem sikerült a létrehozás!\n")
-                        print(data)
                     else:
                         filt = {
                             'filter1': {
@@ -869,7 +878,6 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         
                         invoices=ro.queryRecords(filt,'vl_korrekcio,vl_name','vl_szolgaltatasszamlas',config)
                         for record in invoices:
-                            print(record)
                             if int(record['vl_korrekcio'])==int(id) and record['vl_name']==contract['vl_szerzodesszam']:
                                 invoice=record
                 else:

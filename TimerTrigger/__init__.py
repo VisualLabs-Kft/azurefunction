@@ -200,7 +200,7 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
             return True
         else: return False
     elif periodStart <= posVatDate and posVatDate <= periodEnd:
-        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate.split('T')[0],'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays): 
+        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate,'%Y-%m-%d') >= (datetime.datetime.today()-relativedelta(days=periodDays)): 
             return True
         else: return False
     else: return False
@@ -247,7 +247,7 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['Shipment_Date']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['DALHUNLOCVATDate']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
@@ -447,9 +447,8 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             logging.info("Nincs megadva a periódus kezdete")
             response[0]=response[0]+"\nNincs megadva a periódus kezdete"
             continue
-        first_day_of_the_contract_period = datetime.datetime.strptime(
-            periodStart, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
-
+        first_day_of_the_contract_period = datetime.datetime.strptime(periodStart, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=tz.gettz('UTC')).astimezone(tz.gettz('Budapest/Europe')).replace(tzinfo=None)
+        first_day_of_the_contract_period = first_day_of_the_contract_period+relativedelta(hours=3)
         logging.info("Szamlazasi periodus elso napja: {}".format(first_day_of_the_contract_period))
         
         #teljesítési periodus megadása
@@ -503,8 +502,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                 currPeriodStart=str(first_day_of_the_period)
                 currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1))
                 logging.info("A szerzodes szamlazhato!")
-                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
-                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
             else:
                 currPeriodStart=str(first_day_shifted)
                 currPeriodEnd=str(first_day_shifted + relativedelta(months=monthsPeriodToAdd)-relativedelta(days=1))
@@ -516,8 +514,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     logging.info("Akt1:"+str(currPeriodStart))
                     logging.info("Akt2:"+str(currPeriodEnd))
                     continue
-                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(
-                    monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
+                logging.info("Szerzodes +{} honappal: {} -- Szerzodes kezdodatuma ha honap vegen jar le: {}".format(monthsPeriodToAdd, first_day_shifted, first_day_of_the_period))
 
             periodDays = (last_day_of_prev_month - first_day_of_the_period).days + 1
 
@@ -622,9 +619,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
         halfLimitHuf=0
         halfLimitUnit=0
 
-         # Ellenőzés - Számlázandó vagy nem - Még csak a múltbéli számla van kezelve
+         # Ellenőzés - Számlázandó vagy nem
         if listedContractLines != -1:
-            for contractLine in listedContractLines:
+            for contractLine in listedContractLines[:]:
                 # Ha a számlázás vége korábban van, mint az aktuális periódus kezdete = Már nem kell számlázni
                 if contractLine['vl_szamlazas_vege'] is not None and contractLine['vl_szamlazas_vege'] != "None":
                     currentPeriodStart = first_day_shifted
@@ -767,7 +764,17 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             missingDataData=[]
             missingDataLine={}
             missingDataLineData=[]
-            if limitLevel==1000000002 and commandName=="monthly":
+
+            # Szerződés szintű köztes limit érték meghatározása
+            interimLimitPercentage = 0
+            for contractLine in listedContractLines:
+                if limitLevel == 100000000:
+                    if contractLine['vl_limit_koztes_ertek'] is not None and contractLine['vl_limit_koztes_ertek'] != 'None':
+                        interimLimitPercentage += contractLine['vl_limit_koztes_ertek']
+            interimLimitValue = round(interimLimitPercentage/len(listedContractLines))
+            # ----------------------------------------------
+
+            if limitLevel==100000002 and commandName=="monthly":
                 if contract['vl_szerzodesekid'] is None or contract['vl_szerzodesekid']=='None':
                     missing=True               
                     missingDataData.append(contract['vl_szerzodesekid'])
@@ -778,7 +785,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     missing=True
                     missingDataData.append("Ügyfél")
                 if  method!='test':
-                    if ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value'] is None:
+                    if ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_partner_value'] is None:
                         missing=True
                         missingDataData.append("Vevőcsoport")
                 if missing:
@@ -787,7 +794,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_Szerzodesek@odata.bind": "vl_szerzodeseks({})".format(contract['vl_szerzodesekid']),
                     "vl_Szolgszaml_szamlazasi_partner@odata.bind":"accounts({})".format(contract['_vl_szamlazasi_partner_szerzodes_value']),
                     "vl_Account@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
-                    "vl_Vevocsoport@odata.bind":"accounts({})".format(ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_parner_value']),
+                    "vl_Vevocsoport@odata.bind":"vl_vevocsoports({})".format(ro.getRecord(contract['_vl_ugyfel_value'],'accounts',config)['_vl_vevocsoport_partner_value']),
                     "vl_eladott_kg":soldKg,
                     "vl_eladott_mennyiseg":soldUnit,
                     "vl_eladott_osszeg":soldHuf,
@@ -800,6 +807,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -831,6 +839,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -848,6 +857,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
