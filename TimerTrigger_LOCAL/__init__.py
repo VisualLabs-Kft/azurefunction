@@ -186,7 +186,7 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
             return True
         else: return False
     elif periodStart <= posVatDate and posVatDate <= periodEnd:
-        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd and datetime.datetime.strptime(posVatDate,'%Y-%m-%d') >= datetime.datetime.today()-relativedelta(days=periodDays): 
+        if linePeriodStart <= posVatDate and posVatDate <= linePeriodEnd.split(' ')[0]: 
             return True
         else: return False
     else: return False
@@ -233,7 +233,7 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],contractLine['vl_szamlazas_vege'],periodDays,head['DALHUNLOCVATDate']):
+                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],str(szamlazasVege),periodDays,head['DALHUNLOCVATDate']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
@@ -993,7 +993,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             # 
                             # Ha elerte a koztes limitet -- Koztes limit elerve
                             # 
-                            if soldKg >= float(contractLine['vl_limit_erteke'])*limitKg and soldUnit >= float(contractLine['vl_limit_erteke'])*limitUnit and soldHuf >= float(contractLine['vl_limit_erteke'])*limitHuf:
+                            if soldKg >= float(contractLine['vl_limit_koztes_ertek'])/100*limitKg and soldUnit >= float(contractLine['vl_limit_koztes_ertek'])/100*limitUnit and soldHuf >= float(contractLine['vl_limit_koztes_ertek'])/100*limitHuf:
                                 print('A következő sor elérte a köztes limitet:')
                                 response[0]=response[0]+"\nA következő sor elérte a köztes limitet:"
                                 if contractLine['vl_koztes_limit_berleti_dija_huf'] is not None and contractLine['vl_koztes_limit_berleti_dija_huf']!='None':
