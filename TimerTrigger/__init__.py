@@ -11,6 +11,7 @@ from . import recordOperations as ro
 import requests
 import http.client
 import azure.functions as func
+import pyodbc
 
 
 #return func.HttpResponse("Sikeres futás \n Új sor")
@@ -25,20 +26,22 @@ def get_token(auth_url, client_id, scope, client_secret, grant_type = 'client_cr
     r = requests.post(url=url, data=data, headers=headers)
     return r.json(), r.status_code
 
-auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
-client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
-scope = 'https://api.businesscentral.dynamics.com/.default'
-client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
-logging.info("-------------------CONNECT TO BUSINESS CENTRAL---------------------")
-auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
-client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
-scope = 'https://api.businesscentral.dynamics.com/.default'
-client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
-token = get_token(auth_url, client_id, scope, client_secret)
-access_token = token[0]['access_token']
-header_token = {"Authorization": "Bearer {}".format(access_token)}
-#bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
-#bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+# Needed when using direct BC Odata extract (search 'direct BC Odata extract' for further usecases)
+# auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
+# client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
+# scope = 'https://api.businesscentral.dynamics.com/.default'
+# client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
+# # logging.info("-------------------CONNECT TO BUSINESS CENTRAL---------------------")
+# auth_url = 'https://login.microsoftonline.com/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/oauth2/v2.0/token'
+# client_id = 'd6b218d6-f97d-4917-88f9-3cf7c33aa4bc'
+# scope = 'https://api.businesscentral.dynamics.com/.default'
+# client_secret = "VIK7Q~p3T20CCPQ~f8-rLRGcIZNZz93c-QlcN"
+# token = get_token(auth_url, client_id, scope, client_secret)
+# access_token = token[0]['access_token']
+# header_token = {"Authorization": "Bearer {}".format(access_token)}
+# bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
+# bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+
 bcHead=[]
 bcLine=[]
 
@@ -62,9 +65,18 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if method=='test':
         bcHead=testData['Szamlafejek']['values']
         bcLine=testData['Szamlasorok']['values']
+    # SQL data extract
     else:
-        bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
-        bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+        bcHead = querySQL()[0]
+        bcLine = querySQL()[1]
+        for line in bcLine:
+            line['Quantity'] = int(line['Quantity'])
+            line['Amount'] = float(line['Amount'])
+    # Direct BC Odata extract
+    # else:
+        # bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
+        # bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+    
     # Connect to Dataverse
     logging.info("\n ---------------------------------- CONNECT TO DATAVERSE ---------------------------------- ")
     logging.info("Creating config file!")
@@ -164,6 +176,39 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     
     return func.HttpResponse(response[0])
 
+def querySQL():
+    # Connecting to SQL database
+    connection = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};Server=tcp:dallmayr-sql-prod.database.windows.net,1433;Database=Dallmayr_dwh_prod;Uid=dallmayradmin;Pwd=Dallmayr2021;Encrypt=yes;TrustServerCertificate=no;ConnectionTimeout=30;')
+    # SQL query executer
+    cursor=connection.cursor()
+    # Querying postedSalesInvoiceLines table and transforming to JSON
+    def postedSalesInvoiceLines_query(one=False):
+        cursor.execute("SELECT Shortcut_Dimension_2_Code, No, Document_No, Quantity, Amount, Unit_of_Measure FROM [bc].[PostedSalesInvoiceLines]")
+        r = [dict((cursor.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+        cursor.close()
+        return (r[0] if r else None) if one else r
+    invoiceLines_query = postedSalesInvoiceLines_query()
+    # Querying postedSalesInvoices table and transforming to JSON
+    cursor=connection.cursor()
+    def postedSalesInvoices_query(one=False):
+        cursor.execute("SELECT No, DALHUNLOCVATDate FROM [bc].[PostedSalesInvoices]")
+        r = [dict((cursor.description[i][0], str(value).split(' ')[0]) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+        cursor.close()
+        return (r[0] if r else None) if one else r
+    invoices_query = postedSalesInvoices_query()
+    # Querying Items_v2 table and transforming to JSON
+    cursor=connection.cursor()
+    def itemsv2_query(one=False):
+        cursor.execute("SELECT No, NetWeight FROM [bc].[Items_v2]")
+        r = [dict((cursor.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cursor.fetchall()]
+        cursor.connection.close()
+        return (r[0] if r else None) if one else r
+    items_query = itemsv2_query()
+    return [invoices_query, invoiceLines_query, items_query]
+
 def calculate_correction(periodStart,periodEnd,periodDays,linePeriodStart,linePeriodEnd):
     if (datetime.datetime.today()-periodStart-relativedelta(days=periodDays)).days<=0:
         if periodStart != linePeriodStart: 
@@ -253,15 +298,20 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
         #Eladott mennyiségek összegzése
         #kg
         if postedSalesInvoiceLines:
-            token = get_token(auth_url, client_id, scope, client_secret)
-            access_token = token[0]['access_token']
-            header_token = {"Authorization": "Bearer {}".format(access_token)}
-            products = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/Cikk_karton_Excel", headers=header_token).json()["value"]
+            # SQL data extract
+            products = querySQL()[2]
+            for product in products:
+                product['NetWeight'] = int(product['NetWeight'])
+            # Direct BC data extract
+            # token = get_token(auth_url, client_id, scope, client_secret)
+            # access_token = token[0]['access_token']
+            # header_token = {"Authorization": "Bearer {}".format(access_token)}
+            # products = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/Cikk_karton_Excel", headers=header_token).json()["value"]
             if contractLine['vl_limitertek_alapja'] == 100000000:
                     for line in postedSalesInvoiceLines:
                             for product in products:
                                 if product['No']==line['No']:
-                                    return float(line['Quantity'])*float(product['Net_Weight'])
+                                    return float(line['Quantity'])*float(product['NetWeight'])
             #huf
             elif contractLine['vl_limitertek_alapja'] == 100000001:
                     for line in postedSalesInvoiceLines:
@@ -1014,6 +1064,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 if contractLine['vl_koztes_limit_berleti_dija_huf'] is not None and contractLine['vl_koztes_limit_berleti_dija_huf']!='None':
                                     deviza=100000000
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                    interimFee=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                                     billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                                     logging.info('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft")
                                     response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft"
@@ -1023,6 +1074,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur"
                                     billPartner2+=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                    interimFee=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
                                 if commandName=="monthly":
                                     data = {
                                     "vl_vl_Szerzodo_Partner@odata.bind":"accounts({})".format(contract['_vl_ugyfel_value']),
@@ -1030,7 +1082,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000001,
-                                    "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke'])),
+                                    "vl_berl_uzem_dij_kedv_eredeti":int((interimFee/runningFee)*100),
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
                                     "vl_berleti_uzemeltetesi_dij_deviza":deviza,
                                     "vl_berleti_uzemeltetesi_dij":runningFee
