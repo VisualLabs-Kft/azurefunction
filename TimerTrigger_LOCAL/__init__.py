@@ -1030,6 +1030,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 if contractLine['vl_koztes_limit_berleti_dija_huf'] is not None and contractLine['vl_koztes_limit_berleti_dija_huf']!='None':
                                     deviza=100000000
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
+                                    interimFee=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                                     billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                                     print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft")
                                     response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft"
@@ -1039,6 +1040,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur"
                                     billPartner2+=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
+                                    interimFee=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
                                 if contractLine['vl_limit_koztes_ertek']:
                                     if float(contractLine['vl_limit_koztes_ertek'])/100*limitKg > 0:
                                         print('Köztes limit értéke: '+str(float(contractLine['vl_limit_koztes_ertek'])/100*limitKg))
@@ -1056,7 +1058,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     "vl_POS_2@odata.bind":"vl_poses({})".format(posDictionary[contractLine['vl_name']]),
                                     "vl_Szolgaltatas_szamla@odata.bind":"vl_szolgaltatasszamlas({})".format(invoice['vl_szolgaltatasszamlaid']),
                                     "vl_dij_tipus":100000001,
-                                    "vl_berl_uzem_dij_kedv_eredeti":int(100*float(contractLine['vl_limit_erteke'])),
+                                    "vl_berl_uzem_dij_kedv_eredeti":int((interimFee/runningFee)*100),
                                     "vl_Termek@odata.bind":"products({})".format("9a2848b9-356f-ec11-8943-000d3a46c88e"),
                                     "vl_berleti_uzemeltetesi_dij_deviza":deviza,
                                     "vl_berleti_uzemeltetesi_dij":runningFee
