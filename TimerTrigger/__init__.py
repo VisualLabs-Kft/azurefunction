@@ -49,6 +49,7 @@ access_token = token[0]['access_token']
 header_token = {"Authorization": "Bearer {}".format(access_token)}
 #bcHead = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoices", headers=header_token).json()["value"]
 #bcLine = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/VL_PostedSalesInvoiceLines",headers=header_token).json()["value"]
+products=query("https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/Cikk_karton_Excel")
 bcHead=[]
 bcLine=[]
 
@@ -263,10 +264,6 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
         #Eladott mennyiségek összegzése
         #kg
         if postedSalesInvoiceLines:
-            token = get_token(auth_url, client_id, scope, client_secret)
-            access_token = token[0]['access_token']
-            header_token = {"Authorization": "Bearer {}".format(access_token)}
-            products = requests.get(url="https://api.businesscentral.dynamics.com/v2.0/2ec83d1c-69d7-4d7c-a4f8-959cde9d1b46/Production/ODataV4/Company('Dallmayr')/Cikk_karton_Excel", headers=header_token).json()["value"]
             if contractLine['vl_limitertek_alapja'] == 100000000:
                     for line in postedSalesInvoiceLines:
                             for product in products:
