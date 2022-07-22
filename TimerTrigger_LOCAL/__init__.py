@@ -50,8 +50,8 @@ bcHead=[]
 bcLine=[]
 def main():
     commandName='monthly'
-    method='test'
-    testData={"Parancs":"test","Futas":"monthly","Szamlafejek":{"values":[{"No":"TESZT-SZLA00004","DALHUNLOCVATDate":"2022-06-16"},{"No":"TESZT-SZLA00003","DALHUNLOCVATDate":"2022-06-10"}]},"Szamlasorok":{"values":[{"Shortcut_Dimension_2_Code":"P100001003","No":"411002-EU","Document_No":"TESZT-SZLA00004","Quantity":1,"Amount":4500,"Unit_of_Measure":"DB"},{"Shortcut_Dimension_2_Code":"P100001002","No":"411002-EU","Document_No":"TESZT-SZLA00003","Quantity":1,"Amount":4000,"Unit_of_Measure":"DB"}]},"Vevocsoportok":[],"Partnerek":[{"name":"Teszt Partner_000003","vl_limitfigyeles_szintje_partner":False,"_vl_vevocsoport_partner_value":"None","_parentaccountid_value":"None","accountid":"67616d24-f35d-ec11-8f8f-111111111113","vl_szamlazasi_periodus":"None","vl_szamlazasi_periodus_kezdete":"None","vl_akt_szaml_per_vege":"None"}],"Szerzodesek":[{"_vl_szamlazasi_partner_szerzodes_value":"67616d24-f35d-ec11-8f8f-111111111113","vl_szerzodes_statusza":100000002,"vl_jovahagyas_statusza":True,"vl_szerzodesszam":"TEST_001002","vl_limit_figyeles_szintje_szerz":True,"_vl_ugyfel_value":"67616d24-f35d-ec11-8f8f-111111111113","vl_szamlazasi_periodus_kezdete_szerzodes":"2022-02-01T00:00:00Z","vl_szamlazasi_periodus_szerzodes":100000000,"vl_szerzodes_kategoria":100000000,"vl_szerzodes_lejarata":"2023-09-30T00:00:00Z","vl_szerzodesekid":"324c7596-0972-ec11-8943-111111111003"}],"Szerzodessorok":[{"vl_koztes_limit_berleti_dija_huf":"None","vl_koztes_limit_berleti_dija_eur":26,"vl_teljes_berleti_dij_huf":"None","vl_teljes_berleti_dij_eur":51,"vl_fix_berleti_dij":"None","vl_name":"TEST_001002-SOR-00001","_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111003","vl_limittel_erintett_szerzodessor":True,"vl_limitertek_alapja":100000001,"vl_szamlazas_kezdete":"2022-03-01T00:00:00Z","vl_szamlazas_vege":"None","_vl_kapcsolodo_pos_value":"715ea8d3-1a5f-ec11-8f8f-000d3a2324d1","vl_szamlazo":100000001,"vl_limit_erteke":5000,"vl_limit_koztes_ertek":60,"vl_berl_dij_min_nem_telj_eseten_fix":"None","vl_berl_dij_min_telj_eseten_huf":"None","vl_berl_dij_max_feletti_telj_eseten":"None","vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000005"},{"vl_koztes_limit_berleti_dija_huf":"None","vl_koztes_limit_berleti_dija_eur":26,"vl_teljes_berleti_dij_huf":"None","vl_teljes_berleti_dij_eur":51,"vl_fix_berleti_dij":"None","vl_name":"TEST_001002-SOR-00002","_vl_szerzodes_value":"324c7596-0972-ec11-8943-111111111003","vl_limittel_erintett_szerzodessor":True,"vl_limitertek_alapja":100000001,"vl_szamlazas_kezdete":"2022-03-01T00:00:00Z","vl_szamlazas_vege":"None","_vl_kapcsolodo_pos_value":"735ea8d3-1a5f-ec11-8f8f-000d3a2324d1","vl_szamlazo":100000001,"vl_limit_erteke":5000,"vl_limit_koztes_ertek":60,"vl_berl_dij_min_nem_telj_eseten_fix":"None","vl_berl_dij_min_telj_eseten_huf":"None","vl_berl_dij_max_feletti_telj_eseten":"None","vl_szerzodessoraiid":"ceace059-63e3-ec11-bb3d-000000000006"}],"Limittermekek":[{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"3e20ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000017"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"2f20ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000016"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"8a1fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000012"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"0cb8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000014"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"1ab8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000020"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"0f1fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000007"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"181fac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000008"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"4820ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000018"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"f6b7c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000011"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"02b8c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000013"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"2620ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000015"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"eab7c987-336f-ec11-8943-000d3a46c88e","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000010"},{"_vl_szerzodesek_limit_termek_value":"324c7596-0972-ec11-8943-111111111003","vl_limitvizsgalatialap":100000001,"_vl_kapcsolodo_termek_value":"5220ac85-336f-ec11-8943-000d3a46c2fa","_vl_vallalt_termek_csoport_value":"None","vl_limittermeksoraiid":"e470a463-bfdc-ec11-a7b5-000000000019"}]}
+    method='normal'
+    testData={ "Parancs": "test", "Futas": "monthly", "Szamlafejek": { "values": [] }, "Szamlasorok": { "values": [] }, "Vevocsoportok": [], "Partnerek": [ { "name": "Teszt Partner_000022", "vl_limitfigyeles_szintje_partner": False, "_vl_vevocsoport_partner_value": "None", "_parentaccountid_value": "None", "accountid": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szamlazasi_periodus": "None", "vl_szamlazasi_periodus_kezdete": "None", "vl_akt_szaml_per_vege": "None" } ], "Szerzodesek": [ { "_vl_szamlazasi_partner_szerzodes_value": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szerzodes_statusza": 100000000, "vl_jovahagyas_statusza": True, "vl_szerzodesszam": "TEST_001025", "vl_limit_figyeles_szintje_szerz": True, "_vl_ugyfel_value": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szamlazasi_periodus_kezdete_szerzodes": "2022-02-01T00:00:00Z", "vl_szamlazasi_periodus_szerzodes": 100000000, "vl_szerzodes_kategoria": 100000003, "vl_szerzodes_lejarata": "2023-09-30T00:00:00Z", "vl_szerzodesekid": "324c7596-0972-ec11-8943-111111111026" } ], "Szerzodessorok": [ { "vl_koztes_limit_berleti_dija_huf": 18000, "vl_koztes_limit_berleti_dija_eur": "None", "vl_teljes_berleti_dij_huf": 9000, "vl_teljes_berleti_dij_eur": "None", "vl_fix_berleti_dij": "None", "vl_name": "TEST_001025-SOR-00001", "_vl_szerzodes_value": "324c7596-0972-ec11-8943-111111111026", "vl_limittel_erintett_szerzodessor": True, "vl_limitertek_alapja": 100000002, "vl_szamlazas_kezdete": "2022-01-01T00:00:00Z", "vl_szamlazas_vege": "None", "_vl_kapcsolodo_pos_value": "bf5ea8d3-1a5f-ec11-8f8f-000d3a2324d1", "vl_szamlazo": 100000001, "vl_limit_erteke": 1000, "vl_limit_koztes_ertek": 80, "vl_berl_dij_min_nem_telj_eseten_fix": "None", "vl_berl_dij_min_telj_eseten_huf": "None", "vl_berl_dij_max_feletti_telj_eseten": "None", "vl_szerzodessoraiid": "ceace059-63e3-ec11-bb3d-000000000034" } ], "Limittermekek": [] }
     global bcHead
     global bcLine
     if method=='test':
@@ -148,7 +148,7 @@ def main():
         if listedCustomersForContracts != -1:
             for contract in list(listedContracts):
                 #Teszthez
-                #if contract['vl_szerzodesszam']=='ADSZERZ-001065':
+                # if contract['vl_szerzodesszam']=='ADSZERZ-001062':
                 #    limit_on_contract(response,[contract],commandName,method,testData,100000000,None,None,[0,0,0,0,0,0,0,0],None,None,config)
                 if  contract['vl_jovahagyas_statusza']!=True:
                     listedContracts.remove(contract)
@@ -201,14 +201,14 @@ def drop_pos(periodStart,periodEnd,linePeriodStart,linePeriodEnd,periodDays,posV
         else: return False
     else: return False
 
-def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit):
+def AD_calculate(response,contractLine,contract,periodStart,currPeriodStart,currPeriodEnd,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit):
     if contractLine['vl_limittel_erintett_szerzodessor'] is True:
         #ha nincs megadva számlázás vége akkor a szerződés vége lesz az ??mivan ha ez sincs?
         if contractLine['vl_szamlazas_vege'] is None or contractLine['vl_szamlazas_vege']=='None': 
             if contract['vl_szerzodes_lejarata'] is None or contract['vl_szerzodes_lejarata']=='None':
                 szamlazasVege=""
             else:
-                szamlazasVege = datetime.datetime.strptime(str(contract['vl_szerzodes_lejarata']).split('T')[0],'%Y-%m-%d')
+                szamlazasVege = datetime.datetime.strptime(currPeriodEnd,'%Y-%m-%d')
         else:
             szamlazasVege = datetime.datetime.strptime(contractLine['vl_szamlazas_vege'].split('T')[0],'%Y-%m-%d')
         if contractLine['vl_szamlazas_kezdete'] is None:
@@ -216,7 +216,7 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
         else: billingStart=contractLine['vl_szamlazas_kezdete']
         if contract['vl_szerzodes_lejarata'] is None or contract['vl_szerzodes_lejarata']=='None':
             contract['vl_szerzodes_lejarata']="2060-01-01T00:00:00Z"
-        correction=calculate_correction(datetime.datetime.strptime(periodStart.split('T')[0],'%Y-%m-%d'),datetime.datetime.strptime(contract['vl_szerzodes_lejarata'].split('T')[0],'%Y-%m-%d'),periodDays,datetime.datetime.strptime(billingStart.split('T')[0],'%Y-%m-%d'),szamlazasVege)
+        correction=calculate_correction(datetime.datetime.strptime(periodStart.split('T')[0],'%Y-%m-%d'),datetime.datetime.strptime(currPeriodEnd,'%Y-%m-%d'),periodDays,datetime.datetime.strptime(billingStart.split('T')[0],'%Y-%m-%d'),szamlazasVege)
         print("Korrekció: "+str(correction))
         response[0]=response[0]+"\nKorrekció: "+str(correction)
         postedSalesInvoiceLines=[]
@@ -243,25 +243,32 @@ def AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bc
                 if ok:
                     for head in bcHead:
                         if line['Document_No']==head['No']:
-                            if drop_pos(periodStart,contract['vl_szerzodes_lejarata'],contractLine['vl_szamlazas_kezdete'],str(szamlazasVege),periodDays,head['DALHUNLOCVATDate']):
+                            if drop_pos(currPeriodStart,currPeriodEnd,contractLine['vl_szamlazas_kezdete'],str(szamlazasVege),periodDays,head['DALHUNLOCVATDate']):
                                 postedSalesInvoiceLines.append(line)
                                 postedSalesInvoiceHeads.append(head)
         #Eladott mennyiségek összegzése
-        #kg
+        soldKg = 0
+        soldHuf = 0
+        soldUnit = 0
         if postedSalesInvoiceLines:
+            # kg
             if contractLine['vl_limitertek_alapja'] == 100000000:
                     for line in postedSalesInvoiceLines:
                             for product in products:
                                 if product['No']==line['No']:
-                                    return float(line['Quantity'])*float(product['Net_Weight'])
-            #huf
+                                    soldKg += float(line['Quantity'])*float(product['Net_Weight'])
+                    return soldKg
+            # huf
             elif contractLine['vl_limitertek_alapja'] == 100000001:
                     for line in postedSalesInvoiceLines:
-                        return float(line['Amount'])
+                        soldHuf += float(line['Amount'])
+                    return soldHuf
+            # unit
             elif contractLine['vl_limitertek_alapja'] == 100000002:
                     for line in postedSalesInvoiceLines:
                         if line['Unit_of_Measure']=="DB":
-                            return float(line['Quantity'])
+                            soldUnit += float(line['Quantity'])
+                    return soldUnit
             else: return 0
         else: return 0            
 
@@ -706,19 +713,19 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                             response[0]=response[0]+"\nPOS: "+str(pos['vl_pos_id'])
                             #Kg
                             if contractLine['vl_limitertek_alapja'] == 100000000:
-                                soldKg+=AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldKg=AD_calculate(response,contractLine,contract,periodStart,currPeriodStart,currPeriodEnd,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitKg+=float(contractLine['vl_limit_erteke'])
                                 #if contractLine['vl_limit_koztes_ertek']:
                                 #    halfLimitKg+=float(contractLine['vl_limit_koztes_ertek'])
                             #Huf
                             elif contractLine['vl_limitertek_alapja'] == 100000001:
-                                soldHuf+=AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldHuf=AD_calculate(response,contractLine,contract,periodStart,currPeriodStart,currPeriodEnd,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitHuf+=float(contractLine['vl_limit_erteke'])
                                 #if contractLine['vl_limit_koztes_ertek']:
                                 #    halfLimitHuf+=float(contractLine['vl_limit_koztes_ertek'])
                             #Unit
                             elif contractLine['vl_limitertek_alapja'] == 100000002:
-                                soldUnit+=AD_calculate(response,contractLine,contract,periodStart,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
+                                soldUnit=AD_calculate(response,contractLine,contract,periodStart,currPeriodStart,currPeriodEnd,periodDays,bcHead,bcLine,pos,contractProductsKg,contractProductsHuf,contractProductsUnit)
                                 limitUnit+=float(contractLine['vl_limit_erteke'])
                                 if contractLine['vl_limit_koztes_ertek']:
                                     halfLimitUnit+=float(contractLine['vl_limit_koztes_ertek'])
@@ -729,8 +736,8 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
         if halfLimitUnit:
             halfLimitUnit=limitUnit*(halfLimitUnit/100)'''
         if listedContractLines != -1:                    
-            print('Eladott kg:'+str(soldKg))
-            response[0]=response[0]+"\nEladott kg:"+str(soldKg)
+            print('Eladott kg: '+str(soldKg))
+            response[0]=response[0]+"\nEladott kg: "+str(soldKg)
             soldKgPartner+=soldKg
             print('Eladott összeg: ' + str(soldHuf))
             response[0]=response[0]+"\nEladott összeg: " + str(soldHuf)
@@ -849,6 +856,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     "vl_szolg_szamla_tipusa":100000000,
                     "vl_vl_aktualis_szamlazasi_per_kez":currPeriodStart,
                     "vl_aktualis_szamlazasi_per_veg":currPeriodEnd,
+                    "vl_szolg_szaml_koztes_limit_erteke":interimLimitValue,
                     #ideiglenes id mező
                     "vl_korrekcio":id
                 }
@@ -872,10 +880,10 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     partner=ro.getRecord(contract['_vl_szamlazasi_partner_szerzodes_value'],'accounts',config)
                     if partner != -1:
                         print("Számlázási partner neve: " + str(partner['name']))
-                        response[0]=response[0]+"Számlázási partner neve: "+ str(partner['name'])
+                        response[0]=response[0]+"\nSzámlázási partner neve: "+ str(partner['name'])
                     else:
                         print("Számlázási partner: " + str(contract['_vl_szamlazasi_partner_szerzodes_value']))
-                        response[0]=response[0]+"Számlázási partner: "+ str(contract['_vl_szamlazasi_partner_szerzodes_value'])
+                        response[0]=response[0]+"\nSzámlázási partner: "+ str(contract['_vl_szamlazasi_partner_szerzodes_value'])
             elif commandName=="monthly" and not missing:
                 if method != 'test':
                     if ro.createRecord(data,'vl_szolgaltatasszamlas',config) >= 400:
@@ -901,7 +909,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                         response[0]=response[0]+"Számlázási partner neve: "+ str(partner['name'])
                     else:
                         print("Számlázási partner: " + str(contract['_vl_szamlazasi_partner_szerzodes_value']))
-                        response[0]=response[0]+"Számlázási partner: "+ str(contract['_vl_szamlazasi_partner_szerzodes_value'])
+                        response[0]=response[0]+"\nSzámlázási partner: "+ str(contract['_vl_szamlazasi_partner_szerzodes_value'])
             deviza=100000000
             for contractLine in listedContractLines:
                 missingDataLineData=[]
@@ -918,6 +926,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                     missing=True
                     missingDataLine[contractLine['vl_name']]=missingDataLineData
             for i in range(billRowCount+1):
+                print(missingDataLine)
                 #
                 # Teljes limit elerve -- Fix dij/Limit elerve
                 #
@@ -948,16 +957,16 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         print("Nem sikerült a létrehozás!")
                             print('A következő sor fix díjas:')
-                            print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
+                            print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
                             print('Köztes limit értéke:' + str())
                             response[0]=response[0]+"\nA következő sor fix díjas:"
-                            response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft"
+                            response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_fix_berleti_dij'])+"Ft"
                             if contractLine['vl_fix_berleti_dij'] is not None and contractLine['vl_fix_berleti_dij']!='None':
                                     billPartner+=int(contractLine['vl_fix_berleti_dij'])
                             else: billPartner+=0
-                            # 
-                            # HA limites szerzodes -- Limit elerve
-                            # 
+                        # 
+                        # HA limites szerzodes -- Limit elerve
+                        # 
                         else:
                             if commandName=="monthly":
                                 data = {
@@ -975,9 +984,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         print("Nem sikerült a létrehozás!")
                             print('A következő sor elérte a limitet:')
-                            print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
+                            print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft')
                             response[0]=response[0]+"\nA következő sor elérte a limitet:"
-                            response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft'
+                            response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: 0 Ft'
                             if contractLine['vl_limit_koztes_ertek']:
                                 if float(contractLine['vl_limit_koztes_ertek'])/100*limitKg > 0:
                                     print('Köztes limit értéke: '+str(float(contractLine['vl_limit_koztes_ertek'])/100*limitKg))
@@ -1012,9 +1021,9 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     if ro.createRecord(data,'vl_szolgaltatasszamlasors',config) >= 400:
                                         print("Nem sikerült a létrehozás!")
                             print('A következő sor fix díjas:')
-                            print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
+                            print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_fix_berleti_dij'])+"Ft")
                             response[0]=response[0]+"\nA következő sor fix díjas:"
-                            response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_fix_berleti_dij'])+"Ft"
+                            response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_fix_berleti_dij'])+"Ft"
                             if contractLine['vl_fix_berleti_dij'] is not None and contractLine['vl_fix_berleti_dij']!='None':
                                     billPartner+=int(contractLine['vl_fix_berleti_dij'])
                         # 
@@ -1032,12 +1041,12 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
                                     interimFee=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
                                     billPartner+=int(contractLine['vl_koztes_limit_berleti_dija_huf'])
-                                    print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft")
-                                    response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft"
+                                    print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+' Összeg: ' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft")
+                                    response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+' Összeg: ' + str(contractLine['vl_koztes_limit_berleti_dija_huf'])+"Ft"
                                 elif contractLine['vl_koztes_limit_berleti_dija_eur'] is not None and contractLine['vl_koztes_limit_berleti_dija_eur']!='None':
                                     deviza=100000001
-                                    print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur")
-                                    response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+' Összeg:' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur"
+                                    print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+' Összeg: ' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur")
+                                    response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+' Összeg: ' + str(contractLine['vl_koztes_limit_berleti_dija_eur'])+"Eur"
                                     billPartner2+=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
                                     interimFee=int(contractLine['vl_koztes_limit_berleti_dija_eur'])
@@ -1074,15 +1083,15 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 response[0]=response[0]+"\nA következő sor nem érte el egyik limitet sem:"
                                 if contractLine['vl_teljes_berleti_dij_huf'] is not None and contractLine['vl_teljes_berleti_dij_huf']!='None':
                                     deviza=100000000
-                                    print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft")
-                                    response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft"
+                                    print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_huf'])+" Ft")
+                                    response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_huf'])+" Ft"
                                     billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
                                 if contractLine['vl_teljes_berleti_dij_eur'] is not None and  contractLine['vl_teljes_berleti_dij_eur']!='None':
                                     runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
                                     deviza=100000001
-                                    print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur")
-                                    response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur"
+                                    print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_eur'])+" Eur")
+                                    response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_eur'])+" Eur"
                                     billPartner2+=int(contractLine['vl_teljes_berleti_dij_eur'])
                                 if contractLine['vl_limit_koztes_ertek']:
                                     if float(contractLine['vl_limit_koztes_ertek'])/100*limitKg > 0:
@@ -1119,14 +1128,14 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
                                 deviza=100000000
                                 runningFee=int(contractLine['vl_teljes_berleti_dij_huf'])
                                 billPartner+=int(contractLine['vl_teljes_berleti_dij_huf'])
-                                response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft"
-                                print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_huf'])+"Ft")
+                                response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_huf'])+" Ft"
+                                print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_huf'])+" Ft")
                             if contractLine['vl_teljes_berleti_dij_eur'] is not None and contractLine['vl_teljes_berleti_dij_eur']!='None':
                                 deviza=100000001
                                 runningFee=int(contractLine['vl_teljes_berleti_dij_eur'])
                                 billPartner2+=int(contractLine['vl_teljes_berleti_dij_eur'])
-                                response[0]=response[0]+"\nSzámlázandó szerződés:" + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur"
-                                print('Számlázandó szerződés:' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor:' + str(contractLine['vl_name'])+ ' Összeg:' + str(contractLine['vl_teljes_berleti_dij_eur'])+"Eur")
+                                response[0]=response[0]+"\nSzámlázandó szerződés: " + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_eur'])+" Eur"
+                                print('Számlázandó szerződés: ' + str(contract['vl_szerzodesszam']) + ' Számlázandó sor: ' + str(contractLine['vl_name'])+ ' Összeg: ' + str(contractLine['vl_teljes_berleti_dij_eur'])+" Eur")
                             if contractLine['vl_limit_koztes_ertek']:
                                 if float(contractLine['vl_limit_koztes_ertek'])/100*limitKg > 0:
                                     print('Köztes limit értéke: '+str(float(contractLine['vl_limit_koztes_ertek'])/100*limitKg))
@@ -1200,7 +1209,7 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
             percentage=0
             divider=0
             for i in [0,1,2]:
-                if dailyData[i] > 0: 
+                if dailyData[i] > 0 and dailyData[i+3] > 0: 
                     percentage+=dailyData[i]/dailyData[i+3]
                     divider+=1
             if divider >0:
