@@ -452,6 +452,10 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
     for contract in listedContracts:
         logging.info('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
         response[0]=response[0]+"\n!!!! Szerződés: "+str(contract['vl_szerzodesszam'])+" !!!!"
+        if contract['vl_szerzodes_kategoria'] != 100000000 and contract['vl_szerzodes_kategoria'] != 100000001:
+            print('A szerződés nem HORECA és nem is Vending!')
+            response[0]=response[0]+"\nA szerződés nem HORECA és nem is Vending!"
+            continue
         #csekkoljuk melyik szinten van a periódus
         if limitLevel == 100000000:
             period=contract['vl_szamlazasi_periodus_szerzodes']

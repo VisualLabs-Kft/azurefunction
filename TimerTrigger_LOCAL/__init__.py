@@ -50,7 +50,7 @@ bcHead=[]
 bcLine=[]
 def main():
     commandName='monthly'
-    method='normal'
+    method='test'
     testData={ "Parancs": "test", "Futas": "monthly", "Szamlafejek": { "values": [] }, "Szamlasorok": { "values": [] }, "Vevocsoportok": [], "Partnerek": [ { "name": "Teszt Partner_000022", "vl_limitfigyeles_szintje_partner": False, "_vl_vevocsoport_partner_value": "None", "_parentaccountid_value": "None", "accountid": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szamlazasi_periodus": "None", "vl_szamlazasi_periodus_kezdete": "None", "vl_akt_szaml_per_vege": "None" } ], "Szerzodesek": [ { "_vl_szamlazasi_partner_szerzodes_value": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szerzodes_statusza": 100000000, "vl_jovahagyas_statusza": True, "vl_szerzodesszam": "TEST_001025", "vl_limit_figyeles_szintje_szerz": True, "_vl_ugyfel_value": "67616d24-f35d-ec11-8f8f-111111111132", "vl_szamlazasi_periodus_kezdete_szerzodes": "2022-02-01T00:00:00Z", "vl_szamlazasi_periodus_szerzodes": 100000000, "vl_szerzodes_kategoria": 100000003, "vl_szerzodes_lejarata": "2023-09-30T00:00:00Z", "vl_szerzodesekid": "324c7596-0972-ec11-8943-111111111026" } ], "Szerzodessorok": [ { "vl_koztes_limit_berleti_dija_huf": 18000, "vl_koztes_limit_berleti_dija_eur": "None", "vl_teljes_berleti_dij_huf": 9000, "vl_teljes_berleti_dij_eur": "None", "vl_fix_berleti_dij": "None", "vl_name": "TEST_001025-SOR-00001", "_vl_szerzodes_value": "324c7596-0972-ec11-8943-111111111026", "vl_limittel_erintett_szerzodessor": True, "vl_limitertek_alapja": 100000002, "vl_szamlazas_kezdete": "2022-01-01T00:00:00Z", "vl_szamlazas_vege": "None", "_vl_kapcsolodo_pos_value": "bf5ea8d3-1a5f-ec11-8f8f-000d3a2324d1", "vl_szamlazo": 100000001, "vl_limit_erteke": 1000, "vl_limit_koztes_ertek": 80, "vl_berl_dij_min_nem_telj_eseten_fix": "None", "vl_berl_dij_min_telj_eseten_huf": "None", "vl_berl_dij_max_feletti_telj_eseten": "None", "vl_szerzodessoraiid": "ceace059-63e3-ec11-bb3d-000000000034" } ], "Limittermekek": [] }
     global bcHead
     global bcLine
@@ -437,6 +437,10 @@ def limit_on_contract(response,listedContracts,commandName,method,testData,limit
     for contract in listedContracts:
         print('!!!! Szerződés: '+str(contract['vl_szerzodesszam'])+' !!!!')
         response[0]=response[0]+"\n!!!! Szerződés: "+str(contract['vl_szerzodesszam'])+" !!!!"
+        if contract['vl_szerzodes_kategoria'] != 100000000 and contract['vl_szerzodes_kategoria'] != 100000001:
+            print('A szerződés nem HORECA és nem is Vending!')
+            response[0]=response[0]+"\nA szerződés nem HORECA és nem is Vending!"
+            continue
         #csekkoljuk melyik szinten van a periódus
         if limitLevel == 100000000:
             period=contract['vl_szamlazasi_periodus_szerzodes']
